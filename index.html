@@ -1,0 +1,79 @@
+<html>
+<head>
+
+<!-- play only after the pieces have left their original square -->
+    <script src="js/jquery-1.10.2.min.js"> </script>
+    <script src="js/jquery.color-2.1.2.min.js"> </script>
+    <script src="js/chessboard-0.3.0.js"> </script>
+    <script src="js/chess.js"> </script>
+    <script src="js/music.js"> </script>
+    <script src="js/games.js"> </script>
+    <script src="js/beepboop.js"> </script>
+    <link rel="stylesheet" href="css/chessboard-0.3.0.css" />
+    <script>
+    window.onload = init;
+    var board;
+    var chess_moves = new Chess();
+    var current_move = 0;
+    var cur_file = 0;
+    var moves;
+
+
+    function init() {
+        chess_moves.load_pgn(pgns[0].join('\n'));
+        board = new ChessBoard('board1', 'start');
+        moves = chess_moves.history({verbose: true});
+        console.log(moves);
+        setupMusic();
+        setTimeout(movePiece, 1600);
+
+    }
+
+    function movePiece() {
+        i = current_move;
+        if(i >= moves.length) {
+            return;
+        }
+        board.move(moves[i].from +'-'+ moves[i].to);
+        var rank = moves[i].from.substring(1,2);
+        if (moves[i].san == "O-O") {
+            if (rank == 1) {
+                board.move('h1-f1');
+            } else {
+                board.move('h8-f8');
+            }
+        } else if (moves[i].san == "O-O-0") {
+            if (rank == 1) {
+                board.move('a1-d1');
+            } else {
+                board.move('a8-d8');
+            }
+        }
+        console.log(moves[i]);
+        if (unplayableSquares[moves[i].from] == 1) {
+            delete unplayableSquares[moves[i].from];
+        }
+        playPosition(moves[i]);
+        var text = $('#pgn').text();
+        if (current_move % 2 == 0) {
+            display_move = current_move / 2;
+            display_move = display_move + 1;
+            text = text + ' ' + display_move + '. ';
+        }
+        $('#pgn').text(text + ' ' + moves[i].san);
+        
+        current_move = current_move + 1;
+    }
+
+    </script>
+</head>
+<body>
+
+<div id="board1" style="width: 400px"></div>
+<text id="status"></text>
+<text id="pgn"></text>
+<button onclick='movePiece()'>Next</button>
+
+
+</body>
+</html>
