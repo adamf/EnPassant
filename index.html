@@ -1,7 +1,6 @@
 <html>
 <head>
 
-<!-- play only after the pieces have left their original square -->
     <script src="js/jquery-1.10.2.min.js"> </script>
     <script src="js/jquery.color-2.1.2.min.js"> </script>
     <script src="js/chessboard-0.3.0.js"> </script>
@@ -9,6 +8,7 @@
     <script src="js/music.js"> </script>
     <script src="js/games.js"> </script>
     <script src="js/beepboop.js"> </script>
+    <script src="js/twoplayer.js"> </script>
     <link rel="stylesheet" href="css/chessboard-0.3.0.css" />
     <script>
     window.onload = init;
@@ -17,17 +17,28 @@
     var current_move = 0;
     var cur_file = 0;
     var moves;
+    var is_replay = false;
+    var first_move = true;
 
 
     function init() {
         chess_moves.load_pgn(pgns[0].join('\n'));
-        board = new ChessBoard('board1', 'start');
         moves = chess_moves.history({verbose: true});
-        console.log(moves);
         setupMusic();
-        setTimeout(movePiece, 1600);
 
     }
+
+    function replayGame() {
+        is_replay = true;
+        board = new ChessBoard('board1', 'start');
+        setTimeout(movePiece, 1600);
+    }
+
+    function twoPlayer() {
+        board = new ChessBoard('board1', cfg);
+        updateStatus();
+    }
+    
 
     function movePiece() {
         i = current_move;
@@ -42,14 +53,13 @@
             } else {
                 board.move('h8-f8');
             }
-        } else if (moves[i].san == "O-O-0") {
+        } else if (moves[i].san == "O-O-O") {
             if (rank == 1) {
                 board.move('a1-d1');
             } else {
                 board.move('a8-d8');
             }
         }
-        console.log(moves[i]);
         if (unplayableSquares[moves[i].from] == 1) {
             delete unplayableSquares[moves[i].from];
         }
@@ -69,10 +79,13 @@
 </head>
 <body>
 
+<button onclick='twoPlayer()'>Two Player</button>
+<button onclick='replayGame()'>Preloaded Game</button>
 <div id="board1" style="width: 400px"></div>
+<span id="pgn"></span>
+<br/>
+<span id="fen"></span>
 <text id="status"></text>
-<text id="pgn"></text>
-<button onclick='movePiece()'>Next</button>
 
 
 </body>

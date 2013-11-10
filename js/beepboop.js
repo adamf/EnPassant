@@ -109,7 +109,6 @@ function playRankInFile(cur_move) {
                 if(cur_move.captured && cur_move.to == cur_square) {
                     special_event_synth.noteOn(0);
                     is_capture = true;
-                    console.log("captured!");
                 }
                 flashSquare(cur_square, is_capture);
                 synths[i - 1].type = pieceEffects[piece].synth;
@@ -124,17 +123,21 @@ function playRankInFile(cur_move) {
         setTimeout(function(){playRankInFile(cur_move);}, 200);
     } else {
         cur_file = 0;
-        stopNotes();
+        setTimeout(function(){ stopNotes(cur_move); }, 200);
     }
 }
 
-function stopNotes() {
+function stopNotes(cur_move) {
     for(var j = 0; j < files.length; j++) {
         synths[j].noteOff(0);
         synths[j].disconnect();
     }
     special_event_synth.disconnect();
-    movePiece();
+    if (is_replay) {
+        movePiece();
+    } else {
+        playPosition(cur_move);
+    }
 
 }
 
