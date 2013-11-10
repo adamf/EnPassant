@@ -16,25 +16,30 @@
     var chess_moves = new Chess();
     var current_move = 0;
     var cur_file = 0;
-    var moves;
+    var moves = [];
+    var last_move;
     var is_replay = false;
-    var first_move = true;
 
 
     function init() {
-        chess_moves.load_pgn(pgns[0].join('\n'));
-        moves = chess_moves.history({verbose: true});
         setupMusic();
-
     }
 
     function replayGame() {
+        disconnectSynths();
+        moves = [];
+        last_move = {};
+        chess_moves.load_pgn(pgns[0].join('\n'));
+        moves = chess_moves.history({verbose: true});
         is_replay = true;
         board = new ChessBoard('board1', 'start');
         setTimeout(movePiece, 1600);
     }
 
     function twoPlayer() {
+        disconnectSynths();
+        moves = [];
+        last_move = {};
         board = new ChessBoard('board1', cfg);
         updateStatus();
     }
@@ -71,7 +76,8 @@
             text = text + ' ' + display_move + '. ';
         }
         $('#pgn').text(text + ' ' + moves[i].san);
-        
+       
+        last_move = moves[i];
         current_move = current_move + 1;
     }
 

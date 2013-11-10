@@ -29,6 +29,19 @@ function setupMusic()
     volume.gain.value = 0.5;
     volume.connect(context.destination);
     
+    for (var i = 0; i < files.length; i++) {
+        var sub_volume = context.createGainNode();
+        sub_volume.gain.value = 0.5;
+        sub_volume.connect(volume);
+        synths[i] = context.createOscillator();
+        synths[i].connect(sub_volume);
+        synths[i].sub_volume = sub_volume;
+    }
+    special_event_synth = context.createOscillator();
+    wave = context.createPeriodicWave(new Float32Array([0,440.0, 880.0]), new Float32Array([0, 220.0, 330.0]));
+    special_event_synth.setPeriodicWave(wave);
+    special_event_synth.connect(volume);
+
     pieceEffects['P'] = new PieceEffect(0.5, 0);
     pieceEffects['B'] = new PieceEffect(0.6, 0);
     pieceEffects['N'] = new PieceEffect(0.6, 0);
@@ -80,7 +93,7 @@ function setupMusic()
     }
 }
 function playPosition(cur_move) {
-    // it's really a synth per rank.
+/*
     for (var i = 0; i < files.length; i++) {
         var sub_volume = context.createGainNode();
         sub_volume.gain.value = 0.5;
@@ -88,12 +101,23 @@ function playPosition(cur_move) {
         synths[i] = context.createOscillator();
         synths[i].connect(sub_volume);
         synths[i].sub_volume = sub_volume;
-    }
+    } */
     special_event_synth = context.createOscillator();
     wave = context.createPeriodicWave(new Float32Array([0,440.0, 880.0]), new Float32Array([0, 220.0, 330.0]));
     special_event_synth.setPeriodicWave(wave);
     special_event_synth.connect(volume);
     playRankInFile(cur_move);
+}
+
+function isCurrentMoveLastMove(cur_move) {
+    cur_from = cur_move.from;
+    cur_to = cur_move.to;
+    last_from = last_move.from;
+    last_to = last_move.to;
+    if(last_to == cur_to && last_from == cur_from) {
+        return true;
+    }
+    return false;
 }
 
 function playRankInFile(cur_move) {
@@ -106,15 +130,24 @@ function playRankInFile(cur_move) {
             var piece = cur_position[cur_square].substring(1,2);
             if (unplayableSquares[cur_square] != 1) { 
                 var is_capture = false;
-                if(cur_move.captured && cur_move.to == cur_square) {
+                if (cur_move.captured && cur_move.to == cur_square && !isCurrentMoveLastMove(cur_move)) {
                     special_event_synth.noteOn(0);
                     is_capture = true;
                 }
-                flashSquare(cur_square, is_capture);
+                if (typeof(synths[i - 1]) != 'undefined') {
+                    synths[i - 1].disconnect();
+                }
+                var sub_volume = context.createGainNode();
+                sub_volume.gain.value = 0.5;
+                sub_volume.connect(volume);
+                synths[i - 1] = context.createOscillator();
+                synths[i - 1].connect(sub_volume);
                 synths[i - 1].type = pieceEffects[piece].synth;
-                synths[i - 1].sub_volume.gain.value = pieceEffects[piece].gain;
+                sub_volume.gain.value = pieceEffects[piece].gain;
                 synths[i - 1].frequency.value = color_and_rank_to_frequency[color][i-1];
-                synths[i - 1].noteOn(0);
+                flashSquare(cur_square, is_capture);
+                synths[i - 1].start(0);
+                // if the synth is already playing, we need to stop and re-trigger the note.
             }
         }
     }
@@ -128,17 +161,26 @@ function playRankInFile(cur_move) {
 }
 
 function stopNotes(cur_move) {
-    for(var j = 0; j < files.length; j++) {
-        synths[j].noteOff(0);
-        synths[j].disconnect();
-    }
-    special_event_synth.disconnect();
+    disconnectSynths();
     if (is_replay) {
         movePiece();
     } else {
+        last_move = cur_move;
+        cur_move = moves[moves.length - 1]
         playPosition(cur_move);
     }
 
+}
+
+function disconnectSynths() {
+    for(var j = 0; j < files.length; j++) {
+        if (typeof(synths[j]) != 'undefined') {
+            synths[j].disconnect();
+        }
+    }
+    if (typeof(special_event_synth) != 'undefined') {
+        special_event_synth.disconnect();
+    }
 }
 
 function flashSquare(square, is_capture) {
