@@ -1,10 +1,12 @@
 
 body {
     background-color: #000000;
+    padding-top: 0px;
 }
+
 .main {
     width: 950px;
-    height: 600px;
+    height: 700px;
 }
 
 .playerImage {
@@ -22,4 +24,35 @@ body {
     -webkit-filter: grayscale(0%);
     -moz-filter: grayscale(0%);
     filter: grayscale(0%);
+}
+
+#footer {
+    height: 20px;
+    color: #333333;
+    font-size: 8pt;
+    width: 950px;
+    font-style: none;
+    text-align: center;
+
+}
+
+a {
+    color: #333333;
+    font-size: 8pt;
+    font-family: sans-serif;
+    text-decoration: none;
+}
+
+.aboutPage *, .aboutPage {
+    color: #ffffff;
+    font-size: 10pt;
+    font-family: sans-serif;
+    text-decoration: none;
+}
+
+.aboutPage a {
+    color: #aaaaaa;
+    font-size: 10pt;
+    font-family: sans-serif;
+    text-decoration: none;
 }

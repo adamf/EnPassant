@@ -1,0 +1,44 @@
+
+<html>
+<head>
+
+    <link rel="stylesheet" href="css/enpassant.css" />
+    <script src="js/jquery-1.10.2.min.js"> </script>
+    <script src="js/jquery.color-2.1.2.min.js"> </script>
+    <script src="js/enpassant.js"> </script>
+    <script>
+        window.onload = centerMainDiv;
+    </script>
+</head>
+<body>
+<div class="main" id="container">
+    <div class="images" id="playerImages">
+        <img class="playerImage" src="img/fischer.jpg"></img>
+        <img class="playerImage" src="img/kasparov.jpg"></img>
+        <img class="playerImage" src="img/deep_blue.jpg"></img>
+        <img class="playerImage" src="img/polgar.jpg"></img>
+        <img class="playerImage" src="img/immortal.jpg"></img>
+    </div>
+    <br />
+    <div class="aboutPage" id="board1" style="width: 600px; color: #ffffff;">
+    This hack was submitted to <a href="http://boston.musichackday.org/2013/index.php?page=Main+page">Music Hack Day Boston, 2013</a>.
+
+    Special thanks to the libraries that made this doable in a weekend:
+    <ul>
+    <li><a href="http://chessboardjs.com/">Chessboard.js</a> - used to render the board and pieces.
+    <li><a href="https://github.com/jhlywa/chess.js">chess.js</a> - used to track game state.
+    <li><a href="http://jquery.com/">jQuery</a> - the stdlib of the web.
+    <li><a href="https://github.com/jquery/jquery-color/">jQuery Color Plugin</a> - used to make the piece capture animation.
+    <li><a href="http://wikipedia.org">Wikipedia</a> - for the pictures of the chess players.
+    </div>
+    <div id="footer">
+        <a href="http://thesimplelogic.com">By Adam Fletcher</a> |
+        <a href="about.html">About</a> |
+        <a href="index.html">Home</a> |
+        <a href="http://boston.musichackday.org/2013/index.php?page=Main+page">Music Hack Day Boston, 2013</a>
+    </div>
+</div>
+
+
+</body>
+</html>
