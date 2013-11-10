@@ -60,7 +60,7 @@
         chess_moves.load_pgn(pgns[player_name].join('\n'));
         moves = chess_moves.history({verbose: true});
         is_replay = true;
-        board = new ChessBoard('board1', 'start');
+        board = new ChessBoard('board1', { position: 'start', showNotation: false });
         speedup_ms = Math.floor((note_duration_ms / 2) / moves.length)
         addTimeout(movePiece, note_duration_ms * board_size);
     }
