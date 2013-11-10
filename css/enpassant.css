@@ -1,12 +1,18 @@
 
+body {
+    background-color: #000000;
+}
 .main {
-    width: 800px;
+    width: 950px;
     height: 600px;
 }
 
 .playerImage {
     width: 180px;
     height: 200px;
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
     -webkit-filter: grayscale(100%);
     -moz-filter: grayscale(100%);
     filter: grayscale(100%);
