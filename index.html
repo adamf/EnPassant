@@ -19,29 +19,49 @@
     var moves = [];
     var last_move;
     var is_replay = false;
+    var timeouts = [];
 
 
     function init() {
-        setupMusic();
+        resetState();
+    }
+
+    function clearTimeouts() {
+        for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+        }
+        timeouts = [];
+        
+    }
+    function addTimeout(func, timeout) {
+        timeouts.push(setTimeout(func, timeout));
     }
 
     function replayGame() {
-        disconnectSynths();
-        moves = [];
-        last_move = {};
+        resetState();
         chess_moves.load_pgn(pgns[0].join('\n'));
         moves = chess_moves.history({verbose: true});
         is_replay = true;
         board = new ChessBoard('board1', 'start');
-        setTimeout(movePiece, 1600);
+        addTimeout(movePiece, 1600);
     }
 
     function twoPlayer() {
+        resetState();
+        board = new ChessBoard('board1', cfg);
+        updateStatus();
+    }
+
+    function resetState() {
+        clearTimeouts();
+        is_replay = false;
         disconnectSynths();
         moves = [];
         last_move = {};
-        board = new ChessBoard('board1', cfg);
-        updateStatus();
+        current_move = 0;
+        cur_file = 0;
+        chess_moves = new Chess();
+        setupMusic();
     }
     
 

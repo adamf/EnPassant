@@ -29,19 +29,6 @@ function setupMusic()
     volume.gain.value = 0.5;
     volume.connect(context.destination);
     
-    for (var i = 0; i < files.length; i++) {
-        var sub_volume = context.createGainNode();
-        sub_volume.gain.value = 0.5;
-        sub_volume.connect(volume);
-        synths[i] = context.createOscillator();
-        synths[i].connect(sub_volume);
-        synths[i].sub_volume = sub_volume;
-    }
-    special_event_synth = context.createOscillator();
-    wave = context.createPeriodicWave(new Float32Array([0,440.0, 880.0]), new Float32Array([0, 220.0, 330.0]));
-    special_event_synth.setPeriodicWave(wave);
-    special_event_synth.connect(volume);
-
     pieceEffects['P'] = new PieceEffect(0.5, 0);
     pieceEffects['B'] = new PieceEffect(0.6, 0);
     pieceEffects['N'] = new PieceEffect(0.6, 0);
@@ -153,10 +140,10 @@ function playRankInFile(cur_move) {
     }
     cur_file = cur_file + 1;
     if (cur_file < files.length) {
-        setTimeout(function(){playRankInFile(cur_move);}, 200);
+        addTimeout(function(){playRankInFile(cur_move);}, 200);
     } else {
         cur_file = 0;
-        setTimeout(function(){ stopNotes(cur_move); }, 200);
+        addTimeout(function(){ stopNotes(cur_move); }, 200);
     }
 }
 
