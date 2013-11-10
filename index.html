@@ -10,6 +10,7 @@
     <script src="js/beepboop.js"> </script>
     <script src="js/twoplayer.js"> </script>
     <link rel="stylesheet" href="css/chessboard-0.3.0.css" />
+    <link rel="stylesheet" href="css/enpassant.css" />
     <script>
     window.onload = init;
     var board;
@@ -20,9 +21,25 @@
     var last_move;
     var is_replay = false;
     var timeouts = [];
+    var note_duration_ms = 200;
+    var speedup_ms = 0;
+    var board_size = 8;
 
+    function centerMainDiv() {
+        $('.main').css({
+            position:'absolute',
+            left: ($(window).width() - $('.main').outerWidth())/2,
+            top: ($(window).height() - $('.main').outerHeight())/2
+        });
+        $('.mainBoard').css({
+            position:'absolute',
+            left: ($('.main').width() - $('.mainBoard').outerWidth())/2,
+        });
+    }
 
     function init() {
+        centerMainDiv();
+        $(window).resize(centerMainDiv);
         resetState();
     }
 
@@ -37,13 +54,15 @@
         timeouts.push(setTimeout(func, timeout));
     }
 
-    function replayGame() {
+    function replayGame(element, player_name) {
         resetState();
-        chess_moves.load_pgn(pgns[0].join('\n'));
+        $(element).addClass("playerImageColor");
+        chess_moves.load_pgn(pgns[player_name].join('\n'));
         moves = chess_moves.history({verbose: true});
         is_replay = true;
         board = new ChessBoard('board1', 'start');
-        addTimeout(movePiece, 1600);
+        speedup_ms = Math.floor((note_duration_ms / 2) / moves.length)
+        addTimeout(movePiece, note_duration_ms * board_size);
     }
 
     function twoPlayer() {
@@ -53,6 +72,10 @@
     }
 
     function resetState() {
+        board = new ChessBoard('board1', cfg);
+        $('img').each(function( index ) {
+            $(this).removeClass("playerImageColor");
+          });
         clearTimeouts();
         is_replay = false;
         disconnectSynths();
@@ -60,6 +83,7 @@
         last_move = {};
         current_move = 0;
         cur_file = 0;
+        note_duration_ms = 200;
         chess_moves = new Chess();
         setupMusic();
     }
@@ -69,6 +93,11 @@
         i = current_move;
         if(i >= moves.length) {
             return;
+        }
+        if (current_move - 1 > 0) {
+            last_move = moves[current_move - 1];
+        } else {
+            last_move = moves[current_move];
         }
         board.move(moves[i].from +'-'+ moves[i].to);
         var rank = moves[i].from.substring(1,2);
@@ -89,6 +118,7 @@
             delete unplayableSquares[moves[i].from];
         }
         playPosition(moves[i]);
+        note_duration_ms = note_duration_ms - speedup_ms;
         var text = $('#pgn').text();
         if (current_move % 2 == 0) {
             display_move = current_move / 2;
@@ -97,21 +127,27 @@
         }
         $('#pgn').text(text + ' ' + moves[i].san);
        
-        last_move = moves[i];
         current_move = current_move + 1;
     }
 
     </script>
 </head>
 <body>
-
-<button onclick='twoPlayer()'>Two Player</button>
-<button onclick='replayGame()'>Preloaded Game</button>
-<div id="board1" style="width: 400px"></div>
-<span id="pgn"></span>
-<br/>
-<span id="fen"></span>
-<text id="status"></text>
+<div class="main" id="container">
+    <div class="images" id="playerImages">
+        <img class="playerImage" src="img/fischer.jpg" onclick="replayGame(this, 'fischer');"></img>
+        <img class="playerImage" src="img/kasparov.jpg" onclick="replayGame(this, 'kasparov');" ></img>
+        <img class="playerImage" src="img/deep_blue.jpg" onclick="replayGame(this, 'deep blue');"></img>
+        <img class="playerImage" src="img/polgar.jpg" onclick="replayGame(this, 'polgar');"></img>
+    </div>
+    <br />
+    <div class="mainBoard" id="board1" style="width: 400px"></div>
+    <br />
+    <div id="pgn"></div>
+    <br/>
+    <span id="fen"></span>
+    <text id="status"></text>
+</div>
 
 
 </body>

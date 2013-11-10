@@ -1,0 +1,19 @@
+
+.main {
+    width: 800px;
+    height: 600px;
+}
+
+.playerImage {
+    width: 180px;
+    height: 200px;
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    filter: grayscale(100%);
+}
+
+.playerImage:hover, .playerImageColor { 
+    -webkit-filter: grayscale(0%);
+    -moz-filter: grayscale(0%);
+    filter: grayscale(0%);
+}

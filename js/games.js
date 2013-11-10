@@ -1,25 +1,6 @@
 var pgns = [];
-pgns[0] = [
-        '[Event "London"]',
-        '[Site "London"]',
-        '[Date "1851.??.??"]',
-        '[EventDate "?"]',
-        '[Round "?"]',
-        '[Result "1-0"]',
-        '[White "Adolf Anderssen"]',
-        '[Black "Kieseritzky"]',
-        '[ECO "C33"]',
-        '[WhiteElo "?"]',
-        '[BlackElo "?"]',
-        '[PlyCount "45"]',
-        '',
-        '1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ 4.Kf1 b5 5.Bxb5 Nf6 6.Nf3 Qh6',
-        '7.d3 Nh5 8.Nh4 Qg5 9.Nf5 c6 10.g4 Nf6 11.Rg1 cxb5 12.h4 Qg6',
-        '13.h5 Qg5 14.Qf3 Ng8 15.Bxf4 Qf6 16.Nc3 Bc5 17.Nd5 Qxb2 18.Bd6',
-        '23.Be7# 1-0'];
-
-pgns[1] = [
-       '[Event "Casual Game"]',
+pgns['immortal'] = [
+       '[Event "Immortal Game"]',
        '[Site "Berlin GER"]',
        '[Date "1852.??.??"]',
        '[EventDate "?"]',
@@ -37,3 +18,86 @@ pgns[1] = [
        'Bb6 14.Nbd2 Bb7 15.Ne4 Qf5 16.Bxd3 Qh5 17.Nf6+ gxf6 18.exf6',
        'Rg8 19.Rad1 Qxf3 20.Rxe7+ Nxe7 21.Qxd7+ Kxd7 22.Bf5+ Ke8',
        '23.Bd7+ Kf8 24.Bxe7# 1-0'];
+
+
+pgns['fischer'] = [
+'[Event "Third Rosenwald Trophy"]',
+'[Site "New York USA"]',
+'[Date "1956.10.17"]',
+'[EventDate "1956.10.07"]',
+'[Round "8"]',
+'[Result "0-1"]',
+'[White "Donald Byrne"]',
+'[Black "Robert James Fischer"]',
+'[ECO "D92"]',
+'[WhiteElo "?"]',
+'[BlackElo "?"]',
+'[PlyCount "82"]',
+'',
+'1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4',
+'7. Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5 Na4 12. Qa3 Nxc3',
+'13. bxc3 Nxe4',
+'14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17. Kf1 Be6',
+'18. Bxb6 Bxc4+',
+'19. Kg1 Ne2+ 20. Kf1 Nxd4+ ',
+'21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2 27. Kh2 Nxf2 28. Re1 Rxe1',
+'29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4 32. Qb8 b5',
+'33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+',
+'37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+',
+'41. Kc1 Rc2# 0-1'];
+
+
+pgns['deep blue'] = [
+'[Event "Deep Blue v Kasparov"]',
+'',
+'1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nd7 5.Ng5 Ngf6 6.Bd3 e6 7.N1f3 h6 8.Nxe6 Qe7 9.0-0 fxe6',
+'10.Bg6+ Kd8 11.Bf4 b5 12.a4 Bb7 13.Re1 Nd5 14.Bg3 Kc8 15.axb5 cxb5 16.Qd3 Bc6',
+'17.Bf5 exf5 18.Rxe7 Bxe7 19.c4 1–0'];
+
+
+pgns['kasparov'] = [
+'[Event "m/8"]',
+'[Site "Sevilla  44/40 (Dorfman,I)"]',
+'[Date "1987.11.02"]',
+'[EventDate "?"]',
+'[Round "8"]',
+'[Result "1-0"]',
+'[White "Garry Kasparov"]',
+'[Black "Anatoly Karpov"]',
+'[ECO "A21"]',
+'[WhiteElo "?"]',
+'[BlackElo "?"]',
+'[PlyCount "99"]',
+'',
+'1.c4 e5 2.Nc3 d6 3.g3 c5 4.Bg2 Nc6 5.a3 g6 6.b4 Bg7 7.Rb1 Nge7',
+'8.e3 O-O 9.d3 Rb8 10.Nge2 Be6 11.b5 Na5 12.Bd2 b6 13.O-O Nb7',
+'14.e4 Kh8 15.Qc1 f5 16.Bg5 Qe8 17.Bxe7 Qxe7 18.exf5 Bxf5',
+'19.Nd5 Qd7 20.Qd2 Na5 21.Nec3 Rbe8 22.Ne4 Nb7 23.a4 Na5 24.h4',
+'Nb7 25.Kh2 Rb8 26.Ra1 Na5 27.Ra3 Rf7 28.Qc3 Rd8 29.Ra2 Bh6',
+'30.Ng5 Rff8 31.Re2 Bg7 32.Qc2 Rde8 33.Ne3 Bh6 34.Bd5 Bg7',
+'35.Qd1 h6 36.Ne4 Qd8 37.Ra2 Bc8 38.Nc3 h5 39.Be4 Re6 40.Ncd5',
+'Bh6 41.Ng2 Kg7 42.f4 exf4 43.Ngxf4 Re5 44.Nxg6 Rxf1 45.Qxf1',
+'Rxe4 46.dxe4 Kxg6 47.Rf2 Qe8 48.e5 dxe5 49.Rf6+ Kg7 50.Rd6 1-0'];
+
+
+pgns['polgar'] = [
+'[Event "12th European Individual Championship"]',
+'[Site "Aix-les-Bains FRA"]',
+'[Date "2011.03.28"]',
+'[EventDate "2011.03.21"]',
+'[Round "7"]',
+'[Result "0-1"]',
+'[White "Levan Pantsulaia"]',
+'[Black "Judit Polgar"]',
+'[ECO "A13"]',
+'[WhiteElo "2595"]',
+'[BlackElo "2686"]',
+'[PlyCount "68"]',
+'',
+'1. c4 e6 2. Nf3 Nf6 3. g3 d5 4. Qc2 c5 5. d4 cxd4 6. Nxd4 e5',
+'7. Nb3 Nc6 8. Bg2 Nb4 9. Qd1 dxc4 10. N3d2 Bf5 11. Na3 b5',
+'12. Bxa8 Qxa8 13. Nf3 Nd3+ 14. exd3 Bxd3 15. Nxb5 Bb4+ 16. Nc3',
+'O-O 17. Rg1 Ne4 18. Bd2 Rd8 19. Rc1 Nxc3 20. bxc3 Ba3 21. Be3',
+'Bxc1 22. Bxc1 Rb8 23. Nd2 Qd5 24. Qa4 a5 25. Qd1 h6 26. Qf3',
+'Rb1 27. Kd1 e4 28. Qf4 Ra1 29. Qb8+ Kh7 30. g4 Qd7 31. Qe5 e3',
+'32. fxe3 Qa4+ 33. Ke1 Rxc1+ 34. Kf2 Rxg1 0-1'];
