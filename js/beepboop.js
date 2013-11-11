@@ -111,6 +111,9 @@ function playRankInFile(cur_move) {
         if(cur_position[cur_square]) {
             var color = cur_position[cur_square].substring(0,1);
             var piece = cur_position[cur_square].substring(1,2);
+            if (unplayableSquares[cur_move.from]) {
+                delete unplayableSquares[cur_move.from];
+            }
             if (unplayableSquares[cur_square] != 1) { 
                 var is_capture = false;
                 if (cur_move.captured && cur_move.to == cur_square && !isCurrentMoveLastMove(cur_move)) {

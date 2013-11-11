@@ -107,9 +107,6 @@ function movePiece() {
             board.move('a8-d8');
         }
     }
-    if (unplayableSquares[moves[i].from] == 1) {
-        delete unplayableSquares[moves[i].from];
-    }
     playPosition(moves[i]);
     note_duration_ms = note_duration_ms - speedup_ms;
     var text = $('#pgn').text();
