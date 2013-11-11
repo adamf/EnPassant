@@ -30,10 +30,21 @@ function centerMainDiv() {
     }
 }
 
+function flashPlayerImage(elt) {
+    $(elt).addClass("playerImageColor");
+    addTimeout(function() {$(elt).removeClass("playerImageColor");}, 500);
+}
+function highlightPlayerImages() {
+    $('#playerImages').children().each(function(index, value) {
+        addTimeout(function() {flashPlayerImage(value);}, 150 * (index + 1));
+    });
+}
+
 function init() {
     centerMainDiv();
     $(window).resize(centerMainDiv);
     resetState();
+    highlightPlayerImages();
 }
 
 function clearTimeouts() {

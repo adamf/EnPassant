@@ -18,12 +18,14 @@ body {
     -webkit-filter: grayscale(100%);
     -moz-filter: grayscale(100%);
     filter: grayscale(100%);
+    -webkit-transition:-webkit-filter 0.2s ease-in-out; 
 }
 
 .playerImage:hover, .playerImageColor { 
     -webkit-filter: grayscale(0%);
     -moz-filter: grayscale(0%);
     filter: grayscale(0%);
+    -webkit-transition:-webkit-filter 0.2s ease-in-out; 
 }
 
 #footer {
