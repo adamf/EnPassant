@@ -6,9 +6,15 @@ var moves = [];
 var last_move;
 var is_replay = false;
 var timeouts = [];
-var note_duration_ms = 200;
-var speedup_ms = 0;
 var board_size = 8;
+var sampleConfigs = [];
+var gameState = {};
+gameState.music_type = 'oscillator'
+gameState.note_duration_ms = 200; 
+gameState.speedup_ms = 0; 
+gameState.samples_loaded = false; 
+gameState.sample_name = '6813__menegass__bass-synth-2-octave'
+
 
 function centerMainDiv() {
     $('.main').css({
@@ -41,6 +47,7 @@ function highlightPlayerImages() {
 }
 
 function init() {
+    loadSamplesConfig();
     centerMainDiv();
     $(window).resize(centerMainDiv);
     resetState();
@@ -65,8 +72,8 @@ function replayGame(element, player_name) {
     moves = chess_moves.history({verbose: true});
     is_replay = true;
     board = new ChessBoard('board1', { position: 'start', showNotation: false });
-    speedup_ms = Math.floor((note_duration_ms / 2) / moves.length)
-    addTimeout(movePiece, note_duration_ms * board_size);
+    gameState.speedup_ms = Math.floor((gameState.note_duration_ms / 2) / moves.length)
+    addTimeout(movePiece, gameState.note_duration_ms * board_size);
 }
 
 function twoPlayer() {
@@ -87,7 +94,7 @@ function resetState() {
     last_move = {};
     current_move = 0;
     cur_file = 0;
-    note_duration_ms = 200;
+    gameState.note_duration_ms = 200;
     chess_moves = new Chess();
     setupMusic();
 }
@@ -119,7 +126,7 @@ function movePiece() {
         }
     }
     playPosition(moves[i]);
-    note_duration_ms = note_duration_ms - speedup_ms;
+    gameState.note_duration_ms = gameState.note_duration_ms - gameState.speedup_ms;
     var text = $('#pgn').text();
     if (current_move % 2 == 0) {
         display_move = current_move / 2;

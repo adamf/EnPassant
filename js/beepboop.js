@@ -7,6 +7,15 @@ var volume;
 var pieceEffects = {}
 var special_event_synth;
 
+var chessMusic = {};
+chessMusic.rootNote = 'A'  
+chessMusic.rootOctave = 2;
+chessMusic.lowNotes = Note.fromLatin(chessMusic.rootNote + chessMusic.rootOctave).scale('minor pentatonic');
+chessMusic.midNotes = Note.fromLatin(chessMusic.rootNote + (chessMusic.rootOctave + 1)).scale('minor pentatonic');
+chessMusic.highNotes = Note.fromLatin(chessMusic.rootNote + (chessMusic.rootOctave + 2)).scale('minor pentatonic');
+
+var samples = {}
+
 function PieceEffect(gain, synth) {
     this.gain = gain;
     this.synth = synth;  
@@ -85,7 +94,7 @@ function playChordOsc() {
     enote.noteOn(0);
     bnote.noteOn(0);
     gnote.noteOn(0);
-    addTimeout(function(){ enote.disconnect(); gnote.disconnect(); bnote.disconnect(); }, note_duration_ms);
+    addTimeout(function(){ enote.disconnect(); gnote.disconnect(); bnote.disconnect(); }, gameState.note_duration_ms);
 
 }
 function playPosition(cur_move) {
@@ -117,32 +126,22 @@ function playRankInFile(cur_move) {
             if (unplayableSquares[cur_square] != 1) { 
                 var is_capture = false;
                 if (cur_move.captured && cur_move.to == cur_square && !isCurrentMoveLastMove(cur_move)) {
-                    //playChordOsc();
                     is_capture = true;
                 }
                 if (typeof(synths[i - 1]) != 'undefined') {
-                    synths[i - 1].disconnect();
+                    stopNote(i - 1);
                 }
-                var sub_volume = context.createGainNode();
-                sub_volume.gain.value = 0.5;
-                sub_volume.connect(volume);
-                synths[i - 1] = context.createOscillator();
-                synths[i - 1].connect(sub_volume);
-                synths[i - 1].type = pieceEffects[piece].synth;
-                sub_volume.gain.value = pieceEffects[piece].gain;
-                synths[i - 1].frequency.value = color_and_rank_to_frequency[color][i-1];
+                playSquare(cur_square, color, piece);
                 flashSquare(cur_square, is_capture);
-                synths[i - 1].start(0);
-                // if the synth is already playing, we need to stop and re-trigger the note.
             }
         }
     }
     cur_file = cur_file + 1;
     if (cur_file < files.length) {
-        addTimeout(function(){playRankInFile(cur_move);}, note_duration_ms);
+        addTimeout(function(){playRankInFile(cur_move);}, gameState.note_duration_ms);
     } else {
         cur_file = 0;
-        addTimeout(function(){ stopNotes(cur_move); }, note_duration_ms);
+        addTimeout(function(){ stopNotes(cur_move); }, gameState.note_duration_ms);
     }
 }
 
@@ -161,7 +160,7 @@ function stopNotes(cur_move) {
 function disconnectSynths() {
     for(var j = 0; j < files.length; j++) {
         if (typeof(synths[j]) != 'undefined') {
-            synths[j].disconnect();
+            stopNote(j);
         }
     }
     if (typeof(special_event_synth) != 'undefined') {
@@ -179,4 +178,113 @@ function flashSquare(square, is_capture) {
             function() {
                 $('.square-' + square).animate({ backgroundColor: original_background }, 200, function() {});
             });
+}
+
+function loadSample(sampleDir, sample) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'samples/' + sampleDir + '/' + sample.file, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function () { var buffer = xhr.response; if (buffer) { decodeSample(buffer, sampleDir, sample); }};
+    xhr.onerror = function () { alert('failed to load sample ' + sampleDir + '/' + sample.file); };
+    xhr.send();
+}
+
+function decodeSample(sampleData, sampleDir, sample) {
+    context.decodeAudioData(
+            sampleData, 
+            function onSuccess (decodedData) { storeSampleBuffer(decodedData, sampleDir, sample); }, 
+            function onError (error) { alert('Error decoding ' + sampleDir + '/' + sample.file); }
+        );
+}
+
+function storeSampleBuffer(buffer, sampleDir, sample) {
+    if (!buffer) {
+        alert('Error decoding ' + sampleDir + '/' + sample.file);
+        return;
+    }
+    samples[sampleDir]['notes'][sample.note] = buffer;
+    samples[sampleDir]['to_load'].pop();
+    if (samples[sampleDir]['to_load'].length == 0) {
+        console.log('All samples loaded and decoded');
+        delete samples[sampleDir]['to_load']
+        gameState.samples_loaded = true;
+    }
+}
+
+function loadSamplesConfig() {
+    $.getJSON('samples/samples.json', function(data) {
+        sampleConfigs = data;
+        $.each(data, function(key, val) {
+            console.log(val.dir);
+            var sampleDir = val.dir;
+            samples[sampleDir] = {};
+            samples[sampleDir]['notes'] = {};
+            samples[sampleDir]['config_index'] = key;
+            samples[sampleDir]['to_load'] = [] 
+            $.each(val.samples, function(key, sample) {
+                samples[sampleDir]['to_load'].push(sample.file);
+                loadSample(sampleDir, sample)
+            });
+        });
+    });
+    
+}
+
+function getNoteForRankAndColor(rank, color) {
+    if (color == 'w') {
+        if (rank < chessMusic.midNotes.length) {
+            return chessMusic.midNotes[rank];
+        }
+        return chessMusic.highNotes[rank - chessMusic.midNotes.length];
+    }
+    if (color == 'b') {
+        if (rank < chessMusic.lowNotes.length) {
+            return chessMusic.lowNotes[rank];
+        }
+        return chessMusic.midNotes[rank - chessMusic.lowNotes.length];
+    }
+}
+
+
+function playSquare(square, color, piece) {
+    var rank = square.substring(1,2) - 1;
+    var note = getNoteForRankAndColor(rank, color);
+    switch (gameState.music_type) {
+        case "samples":
+            break;
+        case "oscillator":
+        default:
+            playOscillator(rank, note, piece);
+            break;
+    }
+    
+}
+
+function playOscillator(rank, note, piece) {
+    var freq = note.frequency();
+    var sub_volume = context.createGainNode();
+    sub_volume.gain.value = 0.5;
+    sub_volume.connect(volume);
+    sub_volume.gain.value = pieceEffects[piece].gain;
+    synths[rank] = context.createOscillator();
+    synths[rank].connect(sub_volume);
+    synths[rank].type = pieceEffects[piece].synth;
+    synths[rank].frequency.value = freq; 
+    synths[rank].sub_volume = sub_volume;
+    synths[rank].start(0);
+}
+
+function stopNote(rank) {
+    switch (gameState.music_type) {
+        case "samples":
+            break;
+        case "oscillator":
+        default:
+            synths[rank].sub_volume.gain.value = 0.0;
+            synths[rank].disconnect();
+            break;
+    }
+}
+
+function playSample(note) {
 }
