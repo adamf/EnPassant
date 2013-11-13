@@ -8,11 +8,6 @@ var pieceEffects = {}
 var special_event_synth;
 
 var chessMusic = {};
-chessMusic.rootNote = 'A'  
-chessMusic.rootOctave = 2;
-chessMusic.lowNotes = Note.fromLatin(chessMusic.rootNote + chessMusic.rootOctave).scale('minor pentatonic');
-chessMusic.midNotes = Note.fromLatin(chessMusic.rootNote + (chessMusic.rootOctave + 1)).scale('minor pentatonic');
-chessMusic.highNotes = Note.fromLatin(chessMusic.rootNote + (chessMusic.rootOctave + 2)).scale('minor pentatonic');
 
 var samples = {}
 
@@ -211,6 +206,27 @@ function storeSampleBuffer(buffer, sampleDir, sample) {
     }
 }
 
+function setupNotes() {
+
+    switch (gameState.music_type) {
+        case 'samples':
+            $.each(sampleConfigs, function(key, val) {
+                if (val.dir == gameState.sample_name) {
+                    chessMusic.rootNote = val.rootNote;
+                    chessMusic.rootOctave = val.rootOctave;
+                }
+            });
+            break;
+        case 'oscillator':
+        default:
+            chessMusic.rootNote = 'A'  
+            chessMusic.rootOctave = 2;
+            break;
+    } 
+    chessMusic.lowNotes = Note.fromLatin(chessMusic.rootNote + chessMusic.rootOctave).scale('minor pentatonic');
+    chessMusic.midNotes = Note.fromLatin(chessMusic.rootNote + (chessMusic.rootOctave + 1)).scale('minor pentatonic');
+    chessMusic.highNotes = Note.fromLatin(chessMusic.rootNote + (chessMusic.rootOctave + 2)).scale('minor pentatonic');
+}
 function loadSamplesConfig() {
     $.getJSON('samples/samples.json', function(data) {
         sampleConfigs = data;
@@ -226,7 +242,9 @@ function loadSamplesConfig() {
                 loadSample(sampleDir, sample)
             });
         });
+        setupNotes();
     });
+
     
 }
 
@@ -251,6 +269,7 @@ function playSquare(square, color, piece) {
     var note = getNoteForRankAndColor(rank, color);
     switch (gameState.music_type) {
         case "samples":
+            playSample(rank, note, piece);
             break;
         case "oscillator":
         default:
@@ -275,16 +294,18 @@ function playOscillator(rank, note, piece) {
 }
 
 function stopNote(rank) {
-    switch (gameState.music_type) {
-        case "samples":
-            break;
-        case "oscillator":
-        default:
-            synths[rank].sub_volume.gain.value = 0.0;
-            synths[rank].disconnect();
-            break;
-    }
+    synths[rank].sub_volume.gain.value = 0.0;
 }
 
-function playSample(note) {
+function playSample(rank, note, piece) {
+    var sub_volume = context.createGainNode();
+    sub_volume.gain.value = 0.5;
+    sub_volume.connect(volume);
+    sub_volume.gain.value = pieceEffects[piece].gain;
+    var latinNote = note.latin() + '' + note.octave();
+    synths[rank] = context.createBufferSource();
+    synths[rank].sub_volume = sub_volume;
+    synths[rank].buffer = samples[gameState.sample_name]['notes'][latinNote];
+    synths[rank].connect(sub_volume);
+    synths[rank].start(0);
 }
