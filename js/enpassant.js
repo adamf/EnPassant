@@ -14,8 +14,8 @@ gameState.music_type = 'samples';
 gameState.note_duration_ms = 200; 
 gameState.speedup_ms = 0; 
 gameState.samples_loaded = false; 
-gameState.sample_name = '6813__menegass__bass-synth-2-octave'
-
+//gameState.sample_name = '6813__menegass__bass-synth-2-octave';
+gameState.sample_name = '1098__pitx__spanish-guitar-notes';
 
 function centerMainDiv() {
     $('.main').css({
