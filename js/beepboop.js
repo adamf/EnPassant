@@ -30,15 +30,15 @@ function setupMusic()
 {
     context = new webkitAudioContext();
     volume = context.createGainNode();
-    volume.gain.value = 0.5;
+    volume.gain.value = 0.8;
     volume.connect(context.destination);
     
-    pieceEffects['P'] = new PieceEffect(0.3, 0);
-    pieceEffects['B'] = new PieceEffect(0.4, 0);
-    pieceEffects['N'] = new PieceEffect(0.4, 0);
-    pieceEffects['R'] = new PieceEffect(0.5, 0);
-    pieceEffects['Q'] = new PieceEffect(0.5, 0);
-    pieceEffects['K'] = new PieceEffect(0.6, 0);
+    pieceEffects['P'] = new PieceEffect(0.8, 0);
+    pieceEffects['B'] = new PieceEffect(0.8, 0);
+    pieceEffects['N'] = new PieceEffect(0.8, 0);
+    pieceEffects['R'] = new PieceEffect(0.85, 0);
+    pieceEffects['Q'] = new PieceEffect(0.9, 0);
+    pieceEffects['K'] = new PieceEffect(1.0, 0);
 
     
     color_and_rank_to_frequency['w'] = {}
@@ -292,7 +292,6 @@ function playSquare(square, color, piece) {
 function playOscillator(rank, note, piece, color) {
     var freq = note.frequency();
     var sub_volume = context.createGainNode();
-    sub_volume.gain.value = 0.5;
     sub_volume.connect(volume);
     sub_volume.gain.value = pieceEffects[piece].gain;
     synths[rank] = context.createOscillator();
@@ -309,7 +308,6 @@ function stopNote(rank) {
 
 function playSample(rank, note, piece, color) {
     var sub_volume = context.createGainNode();
-    sub_volume.gain.value = 0.5;
     sub_volume.connect(volume);
     sub_volume.gain.value = pieceEffects[piece].gain;
     var latinNote = note.latin() + '' + note.octave();
