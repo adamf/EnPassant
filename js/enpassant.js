@@ -49,10 +49,10 @@ function highlightPlayerImages() {
 }
 
 function init() {
+    resetState();
     loadSamplesConfig();
     centerMainDiv();
     $(window).resize(centerMainDiv);
-    resetState();
     highlightPlayerImages();
 }
 

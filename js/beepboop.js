@@ -29,7 +29,7 @@ function PieceEffect(gain, synth) {
 function setupMusic() 
 {
     context = new webkitAudioContext();
-    volume = context.createGainNode();
+    volume = context.createGain();
     volume.gain.value = 0.8;
     volume.connect(context.destination);
     
@@ -200,7 +200,7 @@ function storeSampleBuffer(buffer, sampleDir, sample) {
     samples[sampleDir]['notes'][sample.note] = buffer;
     samples[sampleDir]['to_load'].pop();
     if (samples[sampleDir]['to_load'].length == 0) {
-        console.log('All samples loaded and decoded');
+        console.log('All samples for ' + sampleDir + ' loaded and decoded');
         delete samples[sampleDir]['to_load']
         gameState.samples_loaded = true;
     }
@@ -291,7 +291,7 @@ function playSquare(square, color, piece) {
 
 function playOscillator(rank, note, piece, color) {
     var freq = note.frequency();
-    var sub_volume = context.createGainNode();
+    var sub_volume = context.createGain();
     sub_volume.connect(volume);
     sub_volume.gain.value = pieceEffects[piece].gain;
     synths[rank] = context.createOscillator();
@@ -307,7 +307,7 @@ function stopNote(rank) {
 }
 
 function playSample(rank, note, piece, color) {
-    var sub_volume = context.createGainNode();
+    var sub_volume = context.createGain();
     sub_volume.connect(volume);
     sub_volume.gain.value = pieceEffects[piece].gain;
     var latinNote = note.latin() + '' + note.octave();
