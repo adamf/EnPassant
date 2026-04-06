@@ -2,6 +2,9 @@
 import { Chessboard, FEN, INPUT_EVENT_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/Chessboard.js';
 import { Markers, MARKER_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/extensions/markers/Markers.js';
 
+// Access the Note class from music.js (loaded as a global script in index.html)
+const Note = window.Note;
+
 // ============= Game State =============
 let board;
 let chess_moves = new Chess();
