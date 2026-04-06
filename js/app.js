@@ -648,13 +648,10 @@ function initWhenReady() {
         setTimeout(() => {
             if (!initialized) {
                 initialized = true;
-                if (window.Note) {
-                    init();
-                } else {
-                    console.error('music.js library failed to load. Some features may not work.');
-                    // Initialize anyway - the app can still function without music
-                    init();
+                if (!window.Note) {
+                    console.error('music.js library failed to load. Audio will use fallback frequencies.');
                 }
+                init();
             }
         }, LOAD_TIMEOUT_MS);
     }
