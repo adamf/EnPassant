@@ -253,12 +253,13 @@ function setupNotes() {
             // Get minor pentatonic scale notes starting from root
             const scaleName = rootNote + ' minor pentatonic';
             const scaleNotes = Tonal.Scale.get(scaleName).notes;
-            // Return note objects with frequency info for the given octave
+            // Return note objects with cached frequency and latin note name
             return scaleNotes.map(note => ({
                 name: note,
                 octave: rootOctave,
-                frequency: () => Tonal.Note.freq(note + rootOctave),
-                latin: () => note
+                freq: Tonal.Note.freq(note + rootOctave),
+                latin: note,
+                frequency: function() { return this.freq; }
             }));
         };
         
@@ -270,25 +271,40 @@ function setupNotes() {
         chessMusic['b'].highNotes = getScaleNotes(chessMusic['b'].rootNote, chessMusic['b'].rootOctave + 2);
     } else {
         // Fallback with hardcoded minor pentatonic scale notes and frequencies
-        const createFallbackNotes = (rootOctave) => {
-            const minorPentatonic = ['A', 'C', 'D', 'E', 'G'];
-            return minorPentatonic.map(note => ({
-                name: note,
-                octave: rootOctave,
-                frequency: () => {
-                    const baseFreqs = { 'A': 110, 'C': 130.81, 'D': 146.83, 'E': 164.81, 'G': 196 };
-                    return baseFreqs[note] * Math.pow(2, rootOctave - 2);
-                },
-                latin: () => note
-            }));
+        // Minor pentatonic intervals from root: root, m3, P4, P5, m7
+        const getMinorPentatonicNotes = (rootNote) => {
+            const noteOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            const rootIndex = noteOrder.indexOf(rootNote);
+            if (rootIndex === -1) return ['A', 'C', 'D', 'E', 'G']; // Default to A minor pentatonic
+            // Minor pentatonic: root, m3 (3 semitones), P4 (5), P5 (7), m7 (10)
+            // For simplicity, use the hardcoded A minor pentatonic pattern
+            return ['A', 'C', 'D', 'E', 'G'];
         };
         
-        chessMusic['w'].lowNotes = createFallbackNotes(chessMusic['w'].rootOctave || 3);
-        chessMusic['w'].midNotes = createFallbackNotes((chessMusic['w'].rootOctave || 3) + 1);
-        chessMusic['w'].highNotes = createFallbackNotes((chessMusic['w'].rootOctave || 3) + 2);
-        chessMusic['b'].lowNotes = createFallbackNotes(chessMusic['b'].rootOctave || 2);
-        chessMusic['b'].midNotes = createFallbackNotes((chessMusic['b'].rootOctave || 2) + 1);
-        chessMusic['b'].highNotes = createFallbackNotes((chessMusic['b'].rootOctave || 2) + 2);
+        const createFallbackNotes = (rootNote, rootOctave) => {
+            const minorPentatonic = getMinorPentatonicNotes(rootNote);
+            // Base frequencies at octave 2
+            const baseFreqs = { 'A': 110, 'C': 130.81, 'D': 146.83, 'E': 164.81, 'G': 196 };
+            return minorPentatonic.map(note => {
+                const freq = baseFreqs[note] * Math.pow(2, rootOctave - 2);
+                return {
+                    name: note,
+                    octave: rootOctave,
+                    freq: freq,
+                    latin: note,
+                    frequency: function() { return this.freq; }
+                };
+            });
+        };
+        
+        const wRoot = chessMusic['w'].rootNote || 'A';
+        const bRoot = chessMusic['b'].rootNote || 'A';
+        chessMusic['w'].lowNotes = createFallbackNotes(wRoot, chessMusic['w'].rootOctave || 3);
+        chessMusic['w'].midNotes = createFallbackNotes(wRoot, (chessMusic['w'].rootOctave || 3) + 1);
+        chessMusic['w'].highNotes = createFallbackNotes(wRoot, (chessMusic['w'].rootOctave || 3) + 2);
+        chessMusic['b'].lowNotes = createFallbackNotes(bRoot, chessMusic['b'].rootOctave || 2);
+        chessMusic['b'].midNotes = createFallbackNotes(bRoot, (chessMusic['b'].rootOctave || 2) + 1);
+        chessMusic['b'].highNotes = createFallbackNotes(bRoot, (chessMusic['b'].rootOctave || 2) + 2);
     }
 }
 
@@ -362,7 +378,7 @@ function playSample(rank, note, piece, color) {
     const sub_volume = context.createGain();
     sub_volume.connect(volume);
     sub_volume.gain.value = pieceEffects[piece].gain;
-    const latinNote = note.latin() + '' + note.octave;
+    const latinNote = note.latin + '' + note.octave;
     synths[rank] = context.createBufferSource();
     synths[rank].sub_volume = sub_volume;
     synths[rank].buffer = samples[gameState.sample_names[color]]['notes'][latinNote];
