@@ -3,13 +3,9 @@ import { Chessboard, FEN, INPUT_EVENT_TYPE } from 'https://cdn.jsdelivr.net/npm/
 import { Markers, MARKER_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/extensions/markers/Markers.js';
 
 // Access the Note class from music.js (loaded as a global script in index.html)
-// Note: We defer accessing window.Note until it's needed in setupMusic() to ensure
-// the music.js script has finished loading
+// Returns null if music.js is not loaded
 function getNote() {
-    if (!window.Note) {
-        throw new Error('music.js library not loaded. Ensure the script is included before app.js');
-    }
-    return window.Note;
+    return window.Note || null;
 }
 
 // ============= Game State =============
@@ -117,24 +113,49 @@ function setupMusic() {
 
     // Get the Note class from music.js
     const Note = getNote();
-
-    // E minor pentatonic frequencies
-    color_and_rank_to_frequency['w'][0] = Note.fromLatin('A3').frequency();
-    color_and_rank_to_frequency['b'][7] = Note.fromLatin('A2').frequency();
-    color_and_rank_to_frequency['w'][1] = Note.fromLatin('C3').frequency();
-    color_and_rank_to_frequency['b'][6] = Note.fromLatin('C2').frequency();
-    color_and_rank_to_frequency['w'][2] = Note.fromLatin('D3').frequency();
-    color_and_rank_to_frequency['b'][5] = Note.fromLatin('D2').frequency();
-    color_and_rank_to_frequency['w'][3] = Note.fromLatin('E3').frequency();
-    color_and_rank_to_frequency['b'][4] = Note.fromLatin('E2').frequency();
-    color_and_rank_to_frequency['w'][4] = Note.fromLatin('G3').frequency();
-    color_and_rank_to_frequency['b'][3] = Note.fromLatin('G2').frequency();
-    color_and_rank_to_frequency['w'][5] = Note.fromLatin('A4').frequency();
-    color_and_rank_to_frequency['b'][2] = Note.fromLatin('A3').frequency();
-    color_and_rank_to_frequency['w'][6] = Note.fromLatin('C4').frequency();
-    color_and_rank_to_frequency['b'][1] = Note.fromLatin('C3').frequency();
-    color_and_rank_to_frequency['w'][7] = Note.fromLatin('D4').frequency();
-    color_and_rank_to_frequency['b'][0] = Note.fromLatin('D3').frequency();
+    
+    if (!Note) {
+        // music.js not loaded - use fallback frequencies (E minor pentatonic)
+        const fallbackFrequencies = {
+            'A2': 110.00, 'C2': 65.41, 'D2': 73.42, 'E2': 82.41, 'G2': 98.00,
+            'A3': 220.00, 'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'G3': 196.00,
+            'A4': 440.00, 'C4': 261.63, 'D4': 293.66
+        };
+        color_and_rank_to_frequency['w'][0] = fallbackFrequencies['A3'];
+        color_and_rank_to_frequency['b'][7] = fallbackFrequencies['A2'];
+        color_and_rank_to_frequency['w'][1] = fallbackFrequencies['C3'];
+        color_and_rank_to_frequency['b'][6] = fallbackFrequencies['C2'];
+        color_and_rank_to_frequency['w'][2] = fallbackFrequencies['D3'];
+        color_and_rank_to_frequency['b'][5] = fallbackFrequencies['D2'];
+        color_and_rank_to_frequency['w'][3] = fallbackFrequencies['E3'];
+        color_and_rank_to_frequency['b'][4] = fallbackFrequencies['E2'];
+        color_and_rank_to_frequency['w'][4] = fallbackFrequencies['G3'];
+        color_and_rank_to_frequency['b'][3] = fallbackFrequencies['G2'];
+        color_and_rank_to_frequency['w'][5] = fallbackFrequencies['A4'];
+        color_and_rank_to_frequency['b'][2] = fallbackFrequencies['A3'];
+        color_and_rank_to_frequency['w'][6] = fallbackFrequencies['C4'];
+        color_and_rank_to_frequency['b'][1] = fallbackFrequencies['C3'];
+        color_and_rank_to_frequency['w'][7] = fallbackFrequencies['D4'];
+        color_and_rank_to_frequency['b'][0] = fallbackFrequencies['D3'];
+    } else {
+        // E minor pentatonic frequencies using music.js
+        color_and_rank_to_frequency['w'][0] = Note.fromLatin('A3').frequency();
+        color_and_rank_to_frequency['b'][7] = Note.fromLatin('A2').frequency();
+        color_and_rank_to_frequency['w'][1] = Note.fromLatin('C3').frequency();
+        color_and_rank_to_frequency['b'][6] = Note.fromLatin('C2').frequency();
+        color_and_rank_to_frequency['w'][2] = Note.fromLatin('D3').frequency();
+        color_and_rank_to_frequency['b'][5] = Note.fromLatin('D2').frequency();
+        color_and_rank_to_frequency['w'][3] = Note.fromLatin('E3').frequency();
+        color_and_rank_to_frequency['b'][4] = Note.fromLatin('E2').frequency();
+        color_and_rank_to_frequency['w'][4] = Note.fromLatin('G3').frequency();
+        color_and_rank_to_frequency['b'][3] = Note.fromLatin('G2').frequency();
+        color_and_rank_to_frequency['w'][5] = Note.fromLatin('A4').frequency();
+        color_and_rank_to_frequency['b'][2] = Note.fromLatin('A3').frequency();
+        color_and_rank_to_frequency['w'][6] = Note.fromLatin('C4').frequency();
+        color_and_rank_to_frequency['b'][1] = Note.fromLatin('C3').frequency();
+        color_and_rank_to_frequency['w'][7] = Note.fromLatin('D4').frequency();
+        color_and_rank_to_frequency['b'][0] = Note.fromLatin('D3').frequency();
+    }
 
     // Mark initial piece positions as unplayable
     for (let i = 0; i < files.length; i++) {
@@ -611,7 +632,31 @@ function initWhenReady() {
         init();
     } else {
         // Wait for music.js to load (it dispatches 'musicLibraryLoaded' event)
-        window.addEventListener('musicLibraryLoaded', init, { once: true });
+        // Add a timeout fallback in case the script fails to load
+        const LOAD_TIMEOUT_MS = 10000;
+        let initialized = false;
+        
+        const handleLoad = () => {
+            if (!initialized) {
+                initialized = true;
+                init();
+            }
+        };
+        
+        window.addEventListener('musicLibraryLoaded', handleLoad, { once: true });
+        
+        setTimeout(() => {
+            if (!initialized) {
+                initialized = true;
+                if (window.Note) {
+                    init();
+                } else {
+                    console.error('music.js library failed to load. Some features may not work.');
+                    // Initialize anyway - the app can still function without music
+                    init();
+                }
+            }
+        }, LOAD_TIMEOUT_MS);
     }
 }
 
