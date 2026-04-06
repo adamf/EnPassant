@@ -19,23 +19,8 @@ gameState.sample_names['w'] = '1098__pitx__spanish-guitar-notes';
 gameState.sample_names['b'] = '6813__menegass__bass-synth-2-octave';
 
 function centerMainDiv() {
-    $('.main').css({
-        position:'absolute',
-        left: ($(window).width() - $('.main').outerWidth())/2,
-        top: ($(window).height() - $('.main').outerHeight())/2
-    });
-    $('.mainBoard').css({
-        position:'absolute',
-        left: ($('.main').width() - $('.mainBoard').outerWidth())/2,
-    });
-
-    var docHeight = $('.main').height();
-    var footerHeight = $('#footer').height();
-    var footerTop = $('#footer').position().top + footerHeight;
-
-    if (footerTop < docHeight) {
-        $('#footer').css('margin-top', 10 + (docHeight - footerTop) + 'px');
-    }
+    // Modern responsive centering is handled by CSS flexbox
+    // This function is kept for compatibility but no longer needs manual positioning
 }
 
 function flashPlayerImage(elt) {
@@ -48,12 +33,24 @@ function highlightPlayerImages() {
     });
 }
 
+function resumeAudioContext() {
+    // Resume AudioContext on user interaction (required by modern browsers)
+    if (context && context.state === 'suspended') {
+        context.resume();
+    }
+}
+
 function init() {
     resetState();
     loadSamplesConfig();
     centerMainDiv();
     $(window).resize(centerMainDiv);
     highlightPlayerImages();
+    
+    // Add touch/click event listener to resume audio context
+    // Modern browsers require user interaction before playing audio
+    document.body.addEventListener('touchstart', resumeAudioContext, { once: true });
+    document.body.addEventListener('click', resumeAudioContext, { once: true });
 }
 
 function clearTimeouts() {
@@ -68,24 +65,26 @@ function addTimeout(func, timeout) {
 }
 
 function replayGame(element, player_name) {
+    resumeAudioContext();
     resetState();
     $(element).addClass("playerImageColor");
     chess_moves.load_pgn(pgns[player_name].join('\n'));
     moves = chess_moves.history({verbose: true});
     is_replay = true;
-    board = new ChessBoard('board1', { position: 'start', showNotation: false });
+    board = Chessboard('board1', { position: 'start', showNotation: false });
     gameState.speedup_ms = Math.floor((gameState.note_duration_ms / 2) / moves.length)
     addTimeout(movePiece, gameState.note_duration_ms * board_size);
 }
 
 function twoPlayer() {
+    resumeAudioContext();
     resetState();
-    board = new ChessBoard('board1', cfg);
+    board = Chessboard('board1', cfg);
     updateStatus();
 }
 
 function resetState() {
-    board = new ChessBoard('board1', cfg);
+    board = Chessboard('board1', cfg);
     $('img').each(function( index ) {
         $(this).removeClass("playerImageColor");
         });

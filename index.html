@@ -1,16 +1,20 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="css/chessboard-0.3.0.css" />
-    <link rel="stylesheet" href="css/enpassant.css" />
-    <script src="js/jquery-1.10.2.min.js"> </script>
-    <script src="js/jquery.color-2.1.2.min.js"> </script>
-    <script src="js/chessboard-0.3.0.js"> </script>
-    <script src="js/chess.js"> </script>
-    <script src="js/music.js"> </script>
-    <script src="js/games.js"> </script>
-    <script src="js/beepboop.js"> </script>
-    <script src="js/twoplayer.js"> </script>
-    <script src="js/enpassant.js"> </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>En Passant - Musical Chess</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="css/enpassant.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/color/jquery.color-2.2.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gregjopa/music.js@master/music.min.js"></script>
+    <script src="js/games.js"></script>
+    <script src="js/beepboop.js"></script>
+    <script src="js/twoplayer.js"></script>
+    <script src="js/enpassant.js"></script>
     <script>
         window.onload = init;
     </script>
@@ -18,28 +22,23 @@
 <body>
 <div class="main" id="container">
     <div class="images" id="playerImages">
-        <img class="playerImage" src="img/fischer.jpg" onclick="replayGame(this, 'fischer');"></img>
-        <img class="playerImage" src="img/kasparov.jpg" onclick="replayGame(this, 'kasparov');" ></img>
-        <img class="playerImage" src="img/deep_blue.jpg" onclick="replayGame(this, 'deep blue');"></img>
-        <img class="playerImage" src="img/polgar.jpg" onclick="replayGame(this, 'polgar');"></img>
-        <img class="playerImage" src="img/immortal.jpg" onclick="replayGame(this, 'immortal');"></img>
+        <img class="playerImage" src="img/fischer.jpg" alt="Bobby Fischer" onclick="replayGame(this, 'fischer');">
+        <img class="playerImage" src="img/kasparov.jpg" alt="Garry Kasparov" onclick="replayGame(this, 'kasparov');">
+        <img class="playerImage" src="img/deep_blue.jpg" alt="Deep Blue" onclick="replayGame(this, 'deep blue');">
+        <img class="playerImage" src="img/polgar.jpg" alt="Judit Polgar" onclick="replayGame(this, 'polgar');">
+        <img class="playerImage" src="img/immortal.jpg" alt="Immortal Game" onclick="replayGame(this, 'immortal');">
     </div>
-    <br />
-    <div class="mainBoard" id="board1" style="width: 400px"></div>
-    <br />
+    <div class="mainBoard" id="board1"></div>
     <div id="pgn"></div>
-    <br/>
     <span id="fen"></span>
-    <text id="status"></text>
+    <span id="status"></span>
     <div id="footer">
-        <a href="http://thesimplelogic.com">By Adam Fletcher</a> | 
+        <a href="https://thesimplelogic.com">By Adam Fletcher</a> | 
         <a href="about.html">About</a> | 
         <a href="index.html">Home</a> | 
         <a href="https://github.com/adamf/EnPassant">Github</a> | 
         <a href="http://boston.musichackday.org/2013/index.php?page=Main+page">Music Hack Day Boston, 2013</a>
     </div>
 </div>
-
-
 </body>
 </html>

@@ -28,7 +28,9 @@ function PieceEffect(gain, synth) {
 // make black and white different octaves
 function setupMusic() 
 {
-    context = new webkitAudioContext();
+    // Use standard AudioContext with fallback for older browsers
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
     volume = context.createGain();
     volume.gain.value = 0.8;
     volume.connect(context.destination);
@@ -86,9 +88,9 @@ function playChordOsc() {
     var bnote = context.createOscillator();
     bnote.frequency.value = Note.fromLatin('B2').frequency();
     bnote.connect(volume);
-    enote.noteOn(0);
-    bnote.noteOn(0);
-    gnote.noteOn(0);
+    enote.start(0);
+    bnote.start(0);
+    gnote.start(0);
     addTimeout(function(){ enote.disconnect(); gnote.disconnect(); bnote.disconnect(); }, gameState.note_duration_ms);
 
 }

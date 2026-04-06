@@ -17,7 +17,7 @@ var onDrop = function(source, target) {
   var move = game.move({
     from: source,
     to: target,
-    promotion: 'q' // NOTE: always promote to a pawn for example simplicity
+    promotion: 'q' // NOTE: always promote to a queen for example simplicity
   });
 
   
@@ -78,5 +78,6 @@ var cfg = {
   onDragStart: onDragStart,
   onDrop: onDrop,
   onSnapEnd: onSnapEnd,
-  showNotation: false
+  showNotation: false,
+  pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
 };

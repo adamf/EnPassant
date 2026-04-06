@@ -1,9 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="css/enpassant.css" />
-    <script src="js/jquery-1.10.2.min.js"> </script>
-    <script src="js/jquery.color-2.1.2.min.js"> </script>
-    <script src="js/enpassant.js"> </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - En Passant</title>
+    <link rel="stylesheet" href="css/enpassant.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/enpassant.js"></script>
     <script>
         window.onload = centerMainDiv;
     </script>
@@ -11,42 +14,39 @@
 <body>
 <div class="main" id="container">
     <div class="images" id="playerImages">
-        <img class="playerImage" src="img/fischer.jpg"></img>
-        <img class="playerImage" src="img/kasparov.jpg"></img>
-        <img class="playerImage" src="img/deep_blue.jpg"></img>
-        <img class="playerImage" src="img/polgar.jpg"></img>
-        <img class="playerImage" src="img/immortal.jpg"></img>
+        <img class="playerImage" src="img/fischer.jpg" alt="Bobby Fischer">
+        <img class="playerImage" src="img/kasparov.jpg" alt="Garry Kasparov">
+        <img class="playerImage" src="img/deep_blue.jpg" alt="Deep Blue">
+        <img class="playerImage" src="img/polgar.jpg" alt="Judit Polgar">
+        <img class="playerImage" src="img/immortal.jpg" alt="Immortal Game">
     </div>
-    <br />
-    <div class="aboutPage" id="board1" style="width: 600px; color: #ffffff;">
+    <div class="aboutPage" id="board1">
     This hack was submitted to <a href="http://boston.musichackday.org/2013/index.php?page=Main+page">Music Hack Day Boston, 2013</a>.
 
     Special thanks to the libraries that made this doable in a weekend:
     <ul>
-    <li><a href="http://chessboardjs.com/">Chessboard.js</a> - used to render the board and pieces.
-    <li><a href="https://github.com/jhlywa/chess.js">chess.js</a> - used to track game state.
-    <li><a href="https://github.com/gregjopa/music.js">music.js</a> - used to notes into frequencies.
-    <li><a href="http://jquery.com/">jQuery</a> - the stdlib of the web.
-    <li><a href="https://github.com/jquery/jquery-color/">jQuery Color Plugin</a> - used to make the piece capture animation.
-    <li><a href="http://wikipedia.org">Wikipedia</a> - for the pictures of the chess players.
+    <li><a href="http://chessboardjs.com/">Chessboard.js</a> - used to render the board and pieces.</li>
+    <li><a href="https://github.com/jhlywa/chess.js">chess.js</a> - used to track game state.</li>
+    <li><a href="https://github.com/gregjopa/music.js">music.js</a> - used to notes into frequencies.</li>
+    <li><a href="http://jquery.com/">jQuery</a> - the stdlib of the web.</li>
+    <li><a href="https://github.com/jquery/jquery-color/">jQuery Color Plugin</a> - used to make the piece capture animation.</li>
+    <li><a href="http://wikipedia.org">Wikipedia</a> - for the pictures of the chess players.</li>
     </ul>
     <br>
-    The samples used come from <a href="freesound.org">freesound.org</a> and are:
+    The samples used come from <a href="https://freesound.org">freesound.org</a> and are:
     <ul>
-    <li><a href="http://www.freesound.org/people/menegass/packs/6813/">bass synth 2 octave</a> used under the <a href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a> license.
-    <li><a href="http://www.freesound.org/people/pitx/packs/1098/">Spanish Guitar Notes</a> by <a href="http://www.freesound.org/people/pitx/">pitx</a> used under the <a href="http://creativecommons.org/licenses/by-nc/2.5/">Creative Commons Attribution - Non-commercial</a> license.
+    <li><a href="http://www.freesound.org/people/menegass/packs/6813/">bass synth 2 octave</a> used under the <a href="http://creativecommons.org/publicdomain/zero/1.0/">Creative Commons 0</a> license.</li>
+    <li><a href="http://www.freesound.org/people/pitx/packs/1098/">Spanish Guitar Notes</a> by <a href="http://www.freesound.org/people/pitx/">pitx</a> used under the <a href="http://creativecommons.org/licenses/by-nc/2.5/">Creative Commons Attribution - Non-commercial</a> license.</li>
     </ul>
     </div>
 
     <div id="footer">
-        <a href="http://thesimplelogic.com">By Adam Fletcher</a> |
+        <a href="https://thesimplelogic.com">By Adam Fletcher</a> |
         <a href="about.html">About</a> |
         <a href="index.html">Home</a> |
         <a href="https://github.com/adamf/EnPassant">Github</a> |
         <a href="http://boston.musichackday.org/2013/index.php?page=Main+page">Music Hack Day Boston, 2013</a>
     </div>
 </div>
-
-
 </body>
 </html>
