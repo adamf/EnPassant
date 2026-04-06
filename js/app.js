@@ -604,9 +604,29 @@ function init() {
     document.body.addEventListener('click', resumeAudioContext, { once: true });
 }
 
-// Initialize when DOM is ready
+// Wait for music.js library to be loaded before initializing
+function waitForMusicLibrary(callback, maxAttempts = 50) {
+    let attempts = 0;
+    const check = () => {
+        if (window.Note) {
+            callback();
+        } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(check, 100);
+        } else {
+            console.error('music.js library failed to load after ' + (maxAttempts * 100) + 'ms');
+        }
+    };
+    check();
+}
+
+// Initialize when DOM is ready and music.js is loaded
+function initWhenReady() {
+    waitForMusicLibrary(init);
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', initWhenReady);
 } else {
-    init();
+    initWhenReady();
 }
