@@ -1,5 +1,6 @@
 // Main application module - jQuery-free implementation
 import { Chessboard, FEN, INPUT_EVENT_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/Chessboard.js';
+import { Markers, MARKER_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/extensions/markers/Markers.js';
 
 // ============= Game State =============
 let board;
@@ -88,7 +89,10 @@ function createBoard(containerId, options = {}) {
         style: {
             showCoordinates: false,
             aspectRatio: 1
-        }
+        },
+        extensions: [
+            { class: Markers }
+        ]
     };
     return new Chessboard(container, { ...defaultOptions, ...options });
 }
@@ -297,8 +301,9 @@ function getBoardPosition() {
     const fen = board.getPosition();
     const position = {};
     
-    // Parse FEN position part
-    const rows = fen.split('/');
+    // Parse FEN position part only (before the first space)
+    const positionPart = fen.split(' ')[0];
+    const rows = positionPart.split('/');
     const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
     
     rows.forEach((row, rowIndex) => {
@@ -321,25 +326,35 @@ function getBoardPosition() {
     return position;
 }
 
-function flashSquare(square, is_capture) {
-    // Get the square element from cm-chessboard
-    const boardElement = document.querySelector('#board1 .board');
-    if (!boardElement) return;
-    
-    // cm-chessboard uses SVG, find the square
-    const squareElement = boardElement.querySelector(`[data-square="${square}"]`);
-    if (!squareElement) return;
+// Custom marker types for flash effects
+const FLASH_MARKER = {
+    class: "marker-flash",
+    slice: "markerSquare"
+};
 
-    const flash_color = is_capture ? '#ff0000' : '#ffffff';
+const CAPTURE_MARKER = {
+    class: "marker-capture", 
+    slice: "markerSquare"
+};
+
+function flashSquare(square, is_capture) {
+    // Use cm-chessboard's marker extension for visual feedback
+    const markerType = is_capture ? CAPTURE_MARKER : FLASH_MARKER;
     
-    // Use Web Animations API instead of jQuery animate
-    squareElement.animate([
-        { fill: flash_color, opacity: 0.8 },
-        { fill: 'transparent', opacity: 0 }
-    ], {
-        duration: 210,
-        easing: 'ease-out'
-    });
+    try {
+        board.addMarker(markerType, square);
+        // Remove marker after animation duration
+        addTimeout(() => {
+            try {
+                board.removeMarkers(markerType, square);
+            } catch (e) {
+                // Marker may already be removed
+            }
+        }, 210);
+    } catch (e) {
+        // Board may not support markers or square invalid
+        console.log('Could not add marker:', e);
+    }
 }
 
 function isCurrentMoveLastMove(cur_move) {

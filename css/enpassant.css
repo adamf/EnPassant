@@ -73,6 +73,24 @@ body {
     height: 100%;
 }
 
+/* Custom marker animations for square flash effects */
+.cm-chessboard .marker-flash {
+    fill: #ffffff;
+    opacity: 0.8;
+    animation: flash-animation 210ms ease-out forwards;
+}
+
+.cm-chessboard .marker-capture {
+    fill: #ff0000;
+    opacity: 0.8;
+    animation: flash-animation 210ms ease-out forwards;
+}
+
+@keyframes flash-animation {
+    0% { opacity: 0.8; }
+    100% { opacity: 0; }
+}
+
 /* PGN Display */
 #pgn {
     color: #888;
