@@ -604,25 +604,15 @@ function init() {
     document.body.addEventListener('click', resumeAudioContext, { once: true });
 }
 
-// Wait for music.js library to be loaded before initializing
-function waitForMusicLibrary(callback, maxAttempts = 50) {
-    let attempts = 0;
-    const check = () => {
-        if (window.Note) {
-            callback();
-        } else if (attempts < maxAttempts) {
-            attempts++;
-            setTimeout(check, 100);
-        } else {
-            console.error('music.js library failed to load after ' + (maxAttempts * 100) + 'ms');
-        }
-    };
-    check();
-}
-
 // Initialize when DOM is ready and music.js is loaded
 function initWhenReady() {
-    waitForMusicLibrary(init);
+    if (window.Note) {
+        // music.js already loaded
+        init();
+    } else {
+        // Wait for music.js to load (it dispatches 'musicLibraryLoaded' event)
+        window.addEventListener('musicLibraryLoaded', init, { once: true });
+    }
 }
 
 if (document.readyState === 'loading') {
