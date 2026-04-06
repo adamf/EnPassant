@@ -3,7 +3,14 @@ import { Chessboard, FEN, INPUT_EVENT_TYPE } from 'https://cdn.jsdelivr.net/npm/
 import { Markers, MARKER_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/extensions/markers/Markers.js';
 
 // Access the Note class from music.js (loaded as a global script in index.html)
-const Note = window.Note;
+// Note: We defer accessing window.Note until it's needed in setupMusic() to ensure
+// the music.js script has finished loading
+function getNote() {
+    if (!window.Note) {
+        throw new Error('music.js library not loaded. Ensure the script is included before app.js');
+    }
+    return window.Note;
+}
 
 // ============= Game State =============
 let board;
@@ -108,6 +115,9 @@ function setupMusic() {
     volume.gain.value = 0.8;
     volume.connect(context.destination);
 
+    // Get the Note class from music.js
+    const Note = getNote();
+
     // E minor pentatonic frequencies
     color_and_rank_to_frequency['w'][0] = Note.fromLatin('A3').frequency();
     color_and_rank_to_frequency['b'][7] = Note.fromLatin('A2').frequency();
@@ -192,6 +202,9 @@ function storeSampleBuffer(buffer, sampleDir, sample) {
 }
 
 function setupNotes() {
+    // Get the Note class from music.js
+    const Note = getNote();
+
     switch (gameState.music_type) {
         case 'samples':
             sampleConfigs.forEach(val => {
