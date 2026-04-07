@@ -664,6 +664,9 @@ function resetState() {
     clearTimeouts();
     clearSequencerHighlights();
     buildSequencerUI();
+    const meta = document.getElementById('gameMeta');
+    if (meta) meta.hidden = true;
+    if (pgnEl) pgnEl.textContent = '';
     is_replay = false;
     is_finale = false;
     disconnectSynths();
@@ -738,6 +741,50 @@ function twoPlayerInputHandler(event) {
 }
 
 // ============= Game Modes =============
+function formatTimeControl(tc) {
+    if (!tc || tc === '-' || tc === '?') return '';
+    // Common formats: "180", "180+2", "1/10800", "600+5"
+    const simple = tc.match(/^(\d+)(?:\+(\d+))?$/);
+    if (simple) {
+        const secs = parseInt(simple[1], 10);
+        const inc = simple[2] ? parseInt(simple[2], 10) : 0;
+        const mins = Math.floor(secs / 60);
+        const remSec = secs % 60;
+        const base = remSec ? (mins + 'm' + remSec + 's') : (mins + ' min');
+        return inc ? base + ' + ' + inc + 's' : base;
+    }
+    return tc;
+}
+
+function updateGameMeta(headers) {
+    const metaEl = document.getElementById('gameMeta');
+    if (!metaEl) return;
+    const h = headers || {};
+    const white = h.White || '';
+    const black = h.Black || '';
+    if (!white && !black) {
+        metaEl.hidden = true;
+        return;
+    }
+    metaEl.hidden = false;
+    document.getElementById('metaWhiteName').textContent = white || 'White';
+    document.getElementById('metaBlackName').textContent = black || 'Black';
+    document.getElementById('metaWhiteElo').textContent =
+        h.WhiteElo && h.WhiteElo !== '?' ? h.WhiteElo : '';
+    document.getElementById('metaBlackElo').textContent =
+        h.BlackElo && h.BlackElo !== '?' ? h.BlackElo : '';
+    const subParts = [];
+    if (h.Event && h.Event !== '?') subParts.push(h.Event);
+    if (h.Site && h.Site !== '?') subParts.push(h.Site);
+    if (h.Date && h.Date !== '?' && h.Date !== '????.??.??') {
+        const year = h.Date.match(/^(\d{4})/);
+        subParts.push(year ? year[1] : h.Date);
+    }
+    const tc = formatTimeControl(h.TimeControl);
+    if (tc) subParts.push(tc);
+    document.getElementById('metaSub').textContent = subParts.join(' · ');
+}
+
 function sanitizePgn(text) {
     return text
         // Normalize unicode dashes in result tokens (1–0, ½–½) to ASCII
@@ -771,6 +818,7 @@ function startReplay(pgnText) {
         alert('Could not parse PGN');
         return false;
     }
+    updateGameMeta(typeof chess_moves.header === 'function' ? chess_moves.header() : null);
     is_replay = true;
     if (board) {
         board.destroy();
