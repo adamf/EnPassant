@@ -178,7 +178,12 @@ function disconnectSynths() {
 
 function stopNote(rank) {
     if (synths[rank] && synths[rank].sub_volume) {
-        synths[rank].sub_volume.gain.value = 0.0;
+        // Short fade-out to avoid clicks from abruptly zeroing gain
+        const gain = synths[rank].sub_volume.gain;
+        const now = context.currentTime;
+        gain.cancelScheduledValues(now);
+        gain.setValueAtTime(gain.value, now);
+        gain.linearRampToValueAtTime(0.0, now + 0.02);
     }
 }
 
@@ -364,7 +369,11 @@ function playOscillator(rank, note, piece, color) {
     const freq = note.frequency();
     const sub_volume = context.createGain();
     sub_volume.connect(volume);
-    sub_volume.gain.value = pieceEffects[piece].gain;
+    // Short fade-in to avoid click
+    const target = pieceEffects[piece].gain;
+    const now = context.currentTime;
+    sub_volume.gain.setValueAtTime(0, now);
+    sub_volume.gain.linearRampToValueAtTime(target, now + 0.01);
     synths[rank] = context.createOscillator();
     synths[rank].connect(sub_volume);
     synths[rank].type = pieceEffects[piece].synth;
@@ -376,7 +385,10 @@ function playOscillator(rank, note, piece, color) {
 function playSample(rank, note, piece, color) {
     const sub_volume = context.createGain();
     sub_volume.connect(volume);
-    sub_volume.gain.value = pieceEffects[piece].gain;
+    const target = pieceEffects[piece].gain;
+    const now = context.currentTime;
+    sub_volume.gain.setValueAtTime(0, now);
+    sub_volume.gain.linearRampToValueAtTime(target, now + 0.01);
     const latinNote = note.latin + '' + note.octave;
     synths[rank] = context.createBufferSource();
     synths[rank].sub_volume = sub_volume;
