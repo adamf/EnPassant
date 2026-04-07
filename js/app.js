@@ -35,6 +35,7 @@ const gameState = {
 let context;
 let synths = [];
 let volume;
+let compressor;
 let special_event_synth;
 let sampleConfigs = [];
 const samples = {};
@@ -80,6 +81,52 @@ function highlightPlayerImages() {
     });
 }
 
+// ============= Sequencer visualization =============
+const beatBarEl = document.getElementById('beatBar');
+const whiteColEl = document.getElementById('whiteColumn');
+const blackColEl = document.getElementById('blackColumn');
+
+function buildSequencerUI() {
+    if (beatBarEl && beatBarEl.childElementCount === 0) {
+        for (let i = 0; i < files.length; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'beatCell';
+            beatBarEl.appendChild(cell);
+        }
+    }
+    [whiteColEl, blackColEl].forEach(col => {
+        if (col && col.childElementCount === 0) {
+            for (let i = 0; i < 8; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'noteCell';
+                col.appendChild(cell);
+            }
+        }
+    });
+}
+
+function flashBeat(fileIndex) {
+    if (!beatBarEl) return;
+    const cell = beatBarEl.children[fileIndex];
+    if (!cell) return;
+    cell.classList.add('active');
+    addTimeout(() => cell.classList.remove('active'), Math.max(80, gameState.note_duration_ms - 20));
+}
+
+function flashNoteCell(color, rankIndex) {
+    const col = color === 'w' ? whiteColEl : blackColEl;
+    if (!col) return;
+    const cell = col.children[rankIndex];
+    if (!cell) return;
+    cell.classList.add('active');
+    addTimeout(() => cell.classList.remove('active'), Math.max(80, gameState.note_duration_ms - 20));
+}
+
+function clearSequencerHighlights() {
+    document.querySelectorAll('.beatCell.active, .noteCell.active')
+        .forEach(el => el.classList.remove('active'));
+}
+
 function resumeAudioContext() {
     if (context && context.state === 'suspended') {
         context.resume();
@@ -107,8 +154,16 @@ function setupMusic() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     context = new AudioContextClass();
     volume = context.createGain();
-    volume.gain.value = 0.8;
-    volume.connect(context.destination);
+    volume.gain.value = 0.6;
+    // Compressor tames the low-octave bass samples which otherwise clip
+    compressor = context.createDynamicsCompressor();
+    compressor.threshold.value = -18;
+    compressor.knee.value = 12;
+    compressor.ratio.value = 4;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    volume.connect(compressor);
+    compressor.connect(context.destination);
 
     // Get Tonal library
     const Tonal = getTonal();
@@ -473,6 +528,7 @@ function playPosition(cur_move) {
 
 function playRankInFile(cur_move) {
     const cur_position = getBoardPosition();
+    flashBeat(cur_file);
     for (let i = 1; i < 9; i++) {
         const cur_square = files[cur_file] + '' + i;
         if (cur_position[cur_square]) {
@@ -491,6 +547,7 @@ function playRankInFile(cur_move) {
                 }
                 playSquare(cur_square, color, piece);
                 flashSquare(cur_square, is_capture);
+                flashNoteCell(color, i - 1);
             }
         }
     }
@@ -576,6 +633,8 @@ function resetState() {
     });
     
     clearTimeouts();
+    clearSequencerHighlights();
+    buildSequencerUI();
     is_replay = false;
     disconnectSynths();
     moves = [];

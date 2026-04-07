@@ -56,11 +56,63 @@ body {
 }
 
 /* Chessboard */
-.mainBoard {
+.boardRow {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 8px;
     width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.mainBoard {
+    flex: 1 1 auto;
     max-width: 400px;
     aspect-ratio: 1 / 1;
-    margin: 0 auto 15px;
+}
+
+.noteColumn {
+    display: flex;
+    flex-direction: column-reverse; /* rank 1 at bottom */
+    width: 14px;
+    flex: 0 0 14px;
+    gap: 2px;
+}
+
+.noteColumn .noteCell {
+    flex: 1 1 0;
+    background: #1a1a1a;
+    border-radius: 2px;
+    transition: background-color 120ms ease-out;
+}
+
+.noteColumn#whiteColumn .noteCell.active {
+    background: #ffffff;
+}
+
+.noteColumn#blackColumn .noteCell.active {
+    background: #d84a4a;
+}
+
+.beatBar {
+    display: flex;
+    gap: 2px;
+    width: 100%;
+    max-width: 400px;
+    margin: 6px auto 15px;
+    height: 10px;
+}
+
+.beatBar .beatCell {
+    flex: 1 1 0;
+    background: #1a1a1a;
+    border-radius: 2px;
+    transition: background-color 120ms ease-out;
+}
+
+.beatBar .beatCell.active {
+    background: #6ab0ff;
 }
 
 /* Custom marker animations for square flash effects */

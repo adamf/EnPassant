@@ -20,7 +20,12 @@
         <img class="playerImage" src="img/polgar.jpg" alt="Judit Polgar" onclick="replayGame(this, 'polgar');">
         <img class="playerImage" src="img/immortal.jpg" alt="Immortal Game" onclick="replayGame(this, 'immortal');">
     </div>
-    <div class="mainBoard" id="board1"></div>
+    <div class="boardRow">
+        <div class="noteColumn" id="whiteColumn"></div>
+        <div class="mainBoard" id="board1"></div>
+        <div class="noteColumn" id="blackColumn"></div>
+    </div>
+    <div class="beatBar" id="beatBar"></div>
     <div id="pgn"></div>
     <span id="fen"></span>
     <span id="status"></span>
