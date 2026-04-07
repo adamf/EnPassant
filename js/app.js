@@ -754,17 +754,37 @@ function twoPlayerInputHandler(event) {
 }
 
 // ============= Game Modes =============
+function sanitizePgn(text) {
+    return text
+        // Normalize unicode dashes in result tokens (1–0, ½–½) to ASCII
+        .replace(/[\u2010-\u2015\u2212]/g, '-')
+        // Replace digit-zero castling (0-0, 0-0-0) with letter-O castling
+        .replace(/\b0-0-0\b/g, 'O-O-O')
+        .replace(/\b0-0\b/g, 'O-O');
+}
+
 function startReplay(pgnText) {
     resumeAudioContext();
     resetState();
-    const ok = chess_moves.load_pgn(pgnText);
-    if (!ok) {
-        alert('Could not parse PGN');
-        return false;
+    pgnText = sanitizePgn(pgnText);
+    let loaded = false;
+    try {
+        loaded = chess_moves.load_pgn(pgnText) !== false;
+    } catch (e) {
+        console.error('load_pgn threw:', e);
     }
-    moves = chess_moves.history({ verbose: true });
+    moves = loaded ? chess_moves.history({ verbose: true }) : [];
     if (!moves.length) {
-        alert('PGN contained no moves');
+        // Retry with explicit newline option in case the PGN uses \r\n or spaces
+        try {
+            if (chess_moves.load_pgn(pgnText, { newline_char: '\r?\n' })) {
+                moves = chess_moves.history({ verbose: true });
+            }
+        } catch (e) { /* ignore */ }
+    }
+    if (!moves.length) {
+        console.error('Failed to parse PGN:', pgnText);
+        alert('Could not parse PGN');
         return false;
     }
     is_replay = true;
