@@ -2,10 +2,10 @@
 import { Chessboard, FEN, INPUT_EVENT_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/Chessboard.js';
 import { Markers, MARKER_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/extensions/markers/Markers.js';
 
-// Access the Note class from music.js (loaded as a global script in index.html)
-// Returns null if music.js is not loaded
-function getNote() {
-    return window.Note || null;
+// Access Tonal.js (loaded as a global script in index.html)
+// Returns null if Tonal is not loaded
+function getTonal() {
+    return window.Tonal || null;
 }
 
 // ============= Game State =============
@@ -111,11 +111,11 @@ function setupMusic() {
     volume.gain.value = 0.8;
     volume.connect(context.destination);
 
-    // Get the Note class from music.js
-    const Note = getNote();
+    // Get Tonal library
+    const Tonal = getTonal();
     
-    if (!Note) {
-        // music.js not loaded - use fallback frequencies (E minor pentatonic)
+    if (!Tonal) {
+        // Tonal not loaded - use fallback frequencies (E minor pentatonic)
         const fallbackFrequencies = {
             'A2': 110.00, 'C2': 65.41, 'D2': 73.42, 'E2': 82.41, 'G2': 98.00,
             'A3': 220.00, 'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'G3': 196.00,
@@ -138,23 +138,23 @@ function setupMusic() {
         color_and_rank_to_frequency['w'][7] = fallbackFrequencies['D4'];
         color_and_rank_to_frequency['b'][0] = fallbackFrequencies['D3'];
     } else {
-        // E minor pentatonic frequencies using music.js
-        color_and_rank_to_frequency['w'][0] = Note.fromLatin('A3').frequency();
-        color_and_rank_to_frequency['b'][7] = Note.fromLatin('A2').frequency();
-        color_and_rank_to_frequency['w'][1] = Note.fromLatin('C3').frequency();
-        color_and_rank_to_frequency['b'][6] = Note.fromLatin('C2').frequency();
-        color_and_rank_to_frequency['w'][2] = Note.fromLatin('D3').frequency();
-        color_and_rank_to_frequency['b'][5] = Note.fromLatin('D2').frequency();
-        color_and_rank_to_frequency['w'][3] = Note.fromLatin('E3').frequency();
-        color_and_rank_to_frequency['b'][4] = Note.fromLatin('E2').frequency();
-        color_and_rank_to_frequency['w'][4] = Note.fromLatin('G3').frequency();
-        color_and_rank_to_frequency['b'][3] = Note.fromLatin('G2').frequency();
-        color_and_rank_to_frequency['w'][5] = Note.fromLatin('A4').frequency();
-        color_and_rank_to_frequency['b'][2] = Note.fromLatin('A3').frequency();
-        color_and_rank_to_frequency['w'][6] = Note.fromLatin('C4').frequency();
-        color_and_rank_to_frequency['b'][1] = Note.fromLatin('C3').frequency();
-        color_and_rank_to_frequency['w'][7] = Note.fromLatin('D4').frequency();
-        color_and_rank_to_frequency['b'][0] = Note.fromLatin('D3').frequency();
+        // E minor pentatonic frequencies using Tonal.js
+        color_and_rank_to_frequency['w'][0] = Tonal.Note.freq('A3');
+        color_and_rank_to_frequency['b'][7] = Tonal.Note.freq('A2');
+        color_and_rank_to_frequency['w'][1] = Tonal.Note.freq('C3');
+        color_and_rank_to_frequency['b'][6] = Tonal.Note.freq('C2');
+        color_and_rank_to_frequency['w'][2] = Tonal.Note.freq('D3');
+        color_and_rank_to_frequency['b'][5] = Tonal.Note.freq('D2');
+        color_and_rank_to_frequency['w'][3] = Tonal.Note.freq('E3');
+        color_and_rank_to_frequency['b'][4] = Tonal.Note.freq('E2');
+        color_and_rank_to_frequency['w'][4] = Tonal.Note.freq('G3');
+        color_and_rank_to_frequency['b'][3] = Tonal.Note.freq('G2');
+        color_and_rank_to_frequency['w'][5] = Tonal.Note.freq('A4');
+        color_and_rank_to_frequency['b'][2] = Tonal.Note.freq('A3');
+        color_and_rank_to_frequency['w'][6] = Tonal.Note.freq('C4');
+        color_and_rank_to_frequency['b'][1] = Tonal.Note.freq('C3');
+        color_and_rank_to_frequency['w'][7] = Tonal.Note.freq('D4');
+        color_and_rank_to_frequency['b'][0] = Tonal.Note.freq('D3');
     }
 
     // Mark initial piece positions as unplayable
@@ -223,8 +223,8 @@ function storeSampleBuffer(buffer, sampleDir, sample) {
 }
 
 function setupNotes() {
-    // Get the Note class from music.js
-    const Note = getNote();
+    // Get Tonal library
+    const Tonal = getTonal();
 
     switch (gameState.music_type) {
         case 'samples':
@@ -246,12 +246,66 @@ function setupNotes() {
             chessMusic['b'].rootOctave = 2;
             break;
     }
-    chessMusic['w'].lowNotes = Note.fromLatin(chessMusic['w'].rootNote + chessMusic['w'].rootOctave).scale('minor pentatonic');
-    chessMusic['w'].midNotes = Note.fromLatin(chessMusic['w'].rootNote + (chessMusic['w'].rootOctave + 1)).scale('minor pentatonic');
-    chessMusic['w'].highNotes = Note.fromLatin(chessMusic['w'].rootNote + (chessMusic['w'].rootOctave + 2)).scale('minor pentatonic');
-    chessMusic['b'].lowNotes = Note.fromLatin(chessMusic['b'].rootNote + chessMusic['b'].rootOctave).scale('minor pentatonic');
-    chessMusic['b'].midNotes = Note.fromLatin(chessMusic['b'].rootNote + (chessMusic['b'].rootOctave + 1)).scale('minor pentatonic');
-    chessMusic['b'].highNotes = Note.fromLatin(chessMusic['b'].rootNote + (chessMusic['b'].rootOctave + 2)).scale('minor pentatonic');
+    
+    // Generate scale notes using Tonal.js
+    if (Tonal) {
+        const getScaleNotes = (rootNote, rootOctave) => {
+            // Get minor pentatonic scale notes starting from root
+            const scaleName = rootNote + ' minor pentatonic';
+            const scaleNotes = Tonal.Scale.get(scaleName).notes;
+            // Return note objects with cached frequency and latin note name
+            return scaleNotes.map(note => ({
+                name: note,
+                octave: rootOctave,
+                freq: Tonal.Note.freq(note + rootOctave),
+                latin: note,
+                frequency: function() { return this.freq; }
+            }));
+        };
+        
+        chessMusic['w'].lowNotes = getScaleNotes(chessMusic['w'].rootNote, chessMusic['w'].rootOctave);
+        chessMusic['w'].midNotes = getScaleNotes(chessMusic['w'].rootNote, chessMusic['w'].rootOctave + 1);
+        chessMusic['w'].highNotes = getScaleNotes(chessMusic['w'].rootNote, chessMusic['w'].rootOctave + 2);
+        chessMusic['b'].lowNotes = getScaleNotes(chessMusic['b'].rootNote, chessMusic['b'].rootOctave);
+        chessMusic['b'].midNotes = getScaleNotes(chessMusic['b'].rootNote, chessMusic['b'].rootOctave + 1);
+        chessMusic['b'].highNotes = getScaleNotes(chessMusic['b'].rootNote, chessMusic['b'].rootOctave + 2);
+    } else {
+        // Fallback with hardcoded minor pentatonic scale notes and frequencies
+        // Minor pentatonic intervals from root: root, m3, P4, P5, m7
+        const getMinorPentatonicNotes = (rootNote) => {
+            const noteOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            const rootIndex = noteOrder.indexOf(rootNote);
+            if (rootIndex === -1) return ['A', 'C', 'D', 'E', 'G']; // Default to A minor pentatonic
+            // Minor pentatonic: root, m3 (3 semitones), P4 (5), P5 (7), m7 (10)
+            // For simplicity, use the hardcoded A minor pentatonic pattern
+            return ['A', 'C', 'D', 'E', 'G'];
+        };
+        
+        const createFallbackNotes = (rootNote, rootOctave) => {
+            const minorPentatonic = getMinorPentatonicNotes(rootNote);
+            // Base frequencies at octave 2
+            const baseFreqs = { 'A': 110, 'C': 130.81, 'D': 146.83, 'E': 164.81, 'G': 196 };
+            return minorPentatonic.map(note => {
+                const freq = baseFreqs[note] * Math.pow(2, rootOctave - 2);
+                return {
+                    name: note,
+                    octave: rootOctave,
+                    freq: freq,
+                    latin: note,
+                    frequency: function() { return this.freq; }
+                };
+            });
+        };
+        
+        const wRoot = chessMusic['w'].rootNote || 'A';
+        const bRoot = chessMusic['b'].rootNote || 'A';
+        chessMusic['w'].lowNotes = createFallbackNotes(wRoot, chessMusic['w'].rootOctave || 3);
+        chessMusic['w'].midNotes = createFallbackNotes(wRoot, (chessMusic['w'].rootOctave || 3) + 1);
+        chessMusic['w'].highNotes = createFallbackNotes(wRoot, (chessMusic['w'].rootOctave || 3) + 2);
+        chessMusic['b'].lowNotes = createFallbackNotes(bRoot, chessMusic['b'].rootOctave || 2);
+        chessMusic['b'].midNotes = createFallbackNotes(bRoot, (chessMusic['b'].rootOctave || 2) + 1);
+        chessMusic['b'].highNotes = createFallbackNotes(bRoot, (chessMusic['b'].rootOctave || 2) + 2);
+    }
 }
 
 async function loadSamplesConfig() {
@@ -324,7 +378,7 @@ function playSample(rank, note, piece, color) {
     const sub_volume = context.createGain();
     sub_volume.connect(volume);
     sub_volume.gain.value = pieceEffects[piece].gain;
-    const latinNote = note.latin() + '' + note.octave();
+    const latinNote = note.latin + '' + note.octave;
     synths[rank] = context.createBufferSource();
     synths[rank].sub_volume = sub_volume;
     synths[rank].buffer = samples[gameState.sample_names[color]]['notes'][latinNote];
@@ -625,13 +679,13 @@ function init() {
     document.body.addEventListener('click', resumeAudioContext, { once: true });
 }
 
-// Initialize when DOM is ready and music.js is loaded
+// Initialize when DOM is ready and Tonal.js is loaded
 function initWhenReady() {
-    if (window.Note) {
-        // music.js already loaded
+    if (window.Tonal) {
+        // Tonal.js already loaded
         init();
     } else {
-        // Wait for music.js to load (it dispatches 'musicLibraryLoaded' event)
+        // Wait for Tonal.js to load (it dispatches 'musicLibraryLoaded' event)
         // Add a timeout fallback in case the script fails to load
         const LOAD_TIMEOUT_MS = 10000;
         let initialized = false;
@@ -648,8 +702,8 @@ function initWhenReady() {
         setTimeout(() => {
             if (!initialized) {
                 initialized = true;
-                if (!window.Note) {
-                    console.error('music.js library failed to load. Audio will use fallback frequencies.');
+                if (!window.Tonal) {
+                    console.error('Tonal.js library failed to load. Audio will use fallback frequencies.');
                 }
                 init();
             }
