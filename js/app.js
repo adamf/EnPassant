@@ -74,7 +74,7 @@ const gameState = {
         'w': 'acoustic_grand_piano',
         'b': 'acoustic_bass'
     },
-    octave_offset: { w: 0, b: 0 }
+    octave: { w: 3, b: 2 }
 };
 
 // ============= Audio State =============
@@ -293,12 +293,12 @@ function setupNotes() {
     const Tonal = getTonal();
 
     // With Soundfont handling pitch across the full keyboard we use a
-    // fixed E-minor-pentatonic layout independent of the instrument,
-    // shifted by the user-selected octave offset per side.
+    // fixed E-minor-pentatonic layout independent of the instrument.
+    // gameState.octave.{w,b} picks the absolute starting octave per side.
     chessMusic['w'].rootNote = 'E';
-    chessMusic['w'].rootOctave = 3 + (gameState.octave_offset.w || 0);
+    chessMusic['w'].rootOctave = gameState.octave.w;
     chessMusic['b'].rootNote = 'E';
-    chessMusic['b'].rootOctave = 2 + (gameState.octave_offset.b || 0);
+    chessMusic['b'].rootOctave = gameState.octave.b;
     
     // Generate scale notes using Tonal.js
     if (Tonal) {
@@ -823,21 +823,44 @@ window.twoPlayer = function() {
 function populateInstrumentSelectors() {
     const whiteSel = document.getElementById('whiteInstrument');
     const blackSel = document.getElementById('blackInstrument');
-    if (!whiteSel || !blackSel) return;
-    whiteSel.innerHTML = '';
-    blackSel.innerHTML = '';
-    INSTRUMENTS.forEach(inst => {
-        [whiteSel, blackSel].forEach(sel => {
-            const opt = document.createElement('option');
-            opt.value = inst.id;
-            opt.textContent = inst.label;
-            sel.appendChild(opt);
+    if (whiteSel && blackSel) {
+        whiteSel.innerHTML = '';
+        blackSel.innerHTML = '';
+        INSTRUMENTS.forEach(inst => {
+            [whiteSel, blackSel].forEach(sel => {
+                const opt = document.createElement('option');
+                opt.value = inst.id;
+                opt.textContent = inst.label;
+                sel.appendChild(opt);
+            });
         });
-    });
-    whiteSel.value = gameState.instrument_names['w'];
-    blackSel.value = gameState.instrument_names['b'];
-    whiteSel.onchange = () => setInstrument('w', whiteSel.value);
-    blackSel.onchange = () => setInstrument('b', blackSel.value);
+        whiteSel.value = gameState.instrument_names['w'];
+        blackSel.value = gameState.instrument_names['b'];
+        whiteSel.onchange = () => setInstrument('w', whiteSel.value);
+        blackSel.onchange = () => setInstrument('b', blackSel.value);
+    }
+
+    // Octave selects: absolute octave numbers, like scientific pitch notation
+    // (E3 is roughly mid-register for the right hand, E2 is bass range).
+    const whiteOct = document.getElementById('whiteOctave');
+    const blackOct = document.getElementById('blackOctave');
+    const populateOct = (sel, color) => {
+        if (!sel) return;
+        sel.innerHTML = '';
+        for (let o = 1; o <= 6; o++) {
+            const opt = document.createElement('option');
+            opt.value = String(o);
+            opt.textContent = 'E' + o;
+            sel.appendChild(opt);
+        }
+        sel.value = String(gameState.octave[color]);
+        sel.onchange = () => {
+            gameState.octave[color] = parseInt(sel.value, 10);
+            setupNotes();
+        };
+    };
+    populateOct(whiteOct, 'w');
+    populateOct(blackOct, 'b');
 }
 
 function normalizePgnUrl(url) {
@@ -897,23 +920,6 @@ function wireChrome() {
     document.querySelectorAll('.sheetSummary').forEach(s => {
         s.addEventListener('click', (e) => e.preventDefault());
     });
-
-    // Octave offset sliders
-    const wireOctave = (sliderId, valueId, color) => {
-        const slider = document.getElementById(sliderId);
-        const value = document.getElementById(valueId);
-        if (!slider || !value) return;
-        const update = () => {
-            const v = parseInt(slider.value, 10);
-            gameState.octave_offset[color] = v;
-            value.textContent = (v > 0 ? '+' : '') + v;
-            setupNotes();
-        };
-        slider.addEventListener('input', update);
-        update();
-    };
-    wireOctave('whiteOctave', 'whiteOctaveValue', 'w');
-    wireOctave('blackOctave', 'blackOctaveValue', 'b');
 
     // Tempo slider
     const tempoSlider = document.getElementById('tempoSlider');
