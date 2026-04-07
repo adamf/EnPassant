@@ -16,6 +16,7 @@ let cur_file = 0;
 let moves = [];
 let last_move = {};
 let is_replay = false;
+let is_finale = false;
 let timeouts = [];
 const board_size = 8;
 const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -233,12 +234,13 @@ function disconnectSynths() {
 
 function stopNote(rank) {
     if (synths[rank] && synths[rank].sub_volume) {
-        // Short fade-out to avoid clicks from abruptly zeroing gain
+        // Short fade-out to avoid clicks. On the final move let notes ring out.
         const gain = synths[rank].sub_volume.gain;
         const now = context.currentTime;
+        const fade = is_finale ? 3.0 : 0.02;
         gain.cancelScheduledValues(now);
         gain.setValueAtTime(gain.value, now);
-        gain.linearRampToValueAtTime(0.0, now + 0.02);
+        gain.linearRampToValueAtTime(0.0, now + fade);
     }
 }
 
@@ -560,8 +562,49 @@ function playRankInFile(cur_move) {
     }
 }
 
+function playFinaleChord() {
+    // Sustained root+fifth chord on both voices to resolve the game.
+    const playColorChord = (color) => {
+        const scale = chessMusic[color].midNotes;
+        if (!scale || !scale.length) return;
+        // Pentatonic: indices 0 (root), 2 (fourth), 4 (seventh)
+        [0, 2, 4].forEach((idx, i) => {
+            const note = scale[idx] || scale[0];
+            const sub_volume = context.createGain();
+            sub_volume.connect(volume);
+            const target = 0.7;
+            const now = context.currentTime + i * 0.12;
+            sub_volume.gain.setValueAtTime(0, now);
+            sub_volume.gain.linearRampToValueAtTime(target, now + 0.02);
+            sub_volume.gain.linearRampToValueAtTime(0, now + 3.5);
+            let source;
+            if (gameState.music_type === 'samples') {
+                const latinNote = note.latin + '' + note.octave;
+                const buf = samples[gameState.sample_names[color]]['notes'][latinNote];
+                if (!buf) return;
+                source = context.createBufferSource();
+                source.buffer = buf;
+            } else {
+                source = context.createOscillator();
+                source.type = 0;
+                source.frequency.value = note.frequency();
+                source.stop(now + 3.6);
+            }
+            source.connect(sub_volume);
+            source.start(now);
+        });
+    };
+    playColorChord('w');
+    playColorChord('b');
+}
+
 function stopNotes(cur_move) {
     disconnectSynths();
+    if (is_finale) {
+        playFinaleChord();
+        is_finale = false;
+        return;
+    }
     if (is_replay) {
         movePiece();
     } else {
@@ -576,6 +619,9 @@ function movePiece() {
     const i = current_move;
     if (i >= moves.length) {
         return;
+    }
+    if (i === moves.length - 1) {
+        is_finale = true;
     }
     if (current_move - 1 > 0) {
         last_move = moves[current_move - 1];
@@ -636,6 +682,7 @@ function resetState() {
     clearSequencerHighlights();
     buildSequencerUI();
     is_replay = false;
+    is_finale = false;
     disconnectSynths();
     moves = [];
     last_move = {};
@@ -707,24 +754,46 @@ function twoPlayerInputHandler(event) {
 }
 
 // ============= Game Modes =============
-// Make replayGame available globally for onclick handlers
-window.replayGame = function(element, player_name) {
+function startReplay(pgnText) {
     resumeAudioContext();
     resetState();
-    element.classList.add("playerImageColor");
-    chess_moves.load_pgn(pgns[player_name].join('\n'));
+    const ok = chess_moves.load_pgn(pgnText);
+    if (!ok) {
+        alert('Could not parse PGN');
+        return false;
+    }
     moves = chess_moves.history({ verbose: true });
+    if (!moves.length) {
+        alert('PGN contained no moves');
+        return false;
+    }
     is_replay = true;
-    
-    // Destroy existing board and create a new one
     if (board) {
         board.destroy();
     }
     board = createBoard('board1');
-    
     gameState.speedup_ms = Math.floor((gameState.note_duration_ms / 2) / moves.length);
     addTimeout(movePiece, gameState.note_duration_ms * board_size);
+    return true;
+}
+
+// Make replayGame available globally for onclick handlers
+window.replayGame = function(element, player_name) {
+    if (startReplay(pgns[player_name].join('\n'))) {
+        element.classList.add("playerImageColor");
+    }
 };
+
+async function loadPgnFromUrl(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        startReplay(text);
+    } catch (e) {
+        alert('Failed to load PGN from URL: ' + e.message);
+    }
+}
 
 window.twoPlayer = function() {
     resumeAudioContext();
@@ -739,9 +808,61 @@ window.twoPlayer = function() {
 };
 
 // ============= Initialization =============
+function populateInstrumentSelectors() {
+    const whiteSel = document.getElementById('whiteInstrument');
+    const blackSel = document.getElementById('blackInstrument');
+    if (!whiteSel || !blackSel) return;
+    whiteSel.innerHTML = '';
+    blackSel.innerHTML = '';
+    sampleConfigs.forEach(cfg => {
+        const label = (cfg.name || cfg.dir).replace(/_/g, ' ');
+        [whiteSel, blackSel].forEach(sel => {
+            const opt = document.createElement('option');
+            opt.value = cfg.dir;
+            opt.textContent = label;
+            sel.appendChild(opt);
+        });
+    });
+    whiteSel.value = gameState.sample_names['w'];
+    blackSel.value = gameState.sample_names['b'];
+    whiteSel.onchange = () => {
+        gameState.sample_names['w'] = whiteSel.value;
+        setupNotes();
+    };
+    blackSel.onchange = () => {
+        gameState.sample_names['b'] = blackSel.value;
+        setupNotes();
+    };
+}
+
+function wirePgnForm() {
+    const form = document.getElementById('pgnForm');
+    const input = document.getElementById('pgnUrl');
+    if (!form || !input) return;
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const url = input.value.trim();
+        if (url) loadPgnFromUrl(url);
+    });
+}
+
+function checkPgnQueryParam() {
+    const params = new URLSearchParams(window.location.search);
+    const pgnUrl = params.get('pgn');
+    if (pgnUrl) {
+        const input = document.getElementById('pgnUrl');
+        if (input) input.value = pgnUrl;
+        loadPgnFromUrl(pgnUrl);
+    }
+}
+
 function init() {
     resetState();
-    loadSamplesConfig();
+    loadSamplesConfig().then(() => {
+        populateInstrumentSelectors();
+        checkPgnQueryParam();
+    });
+    wirePgnForm();
     highlightPlayerImages();
 
     // Add touch/click event listener to resume audio context

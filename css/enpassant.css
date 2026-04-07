@@ -24,6 +24,65 @@ body {
     align-items: center;
 }
 
+/* Instructions & controls */
+.instructions {
+    color: #cccccc;
+    font-family: sans-serif;
+    font-size: 11pt;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #888;
+    font-family: sans-serif;
+    font-size: 10pt;
+}
+
+.controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.controls select,
+.controls input,
+.controls button {
+    background: #111;
+    color: #ccc;
+    border: 1px solid #333;
+    padding: 4px 6px;
+    font-family: sans-serif;
+    font-size: 10pt;
+    border-radius: 3px;
+}
+
+.controls button {
+    cursor: pointer;
+}
+
+.controls button:hover {
+    background: #222;
+}
+
+.pgnForm {
+    display: flex;
+    gap: 4px;
+    flex: 1 1 260px;
+    max-width: 420px;
+}
+
+.pgnForm input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 /* Player Images */
 .images {
     display: flex;

@@ -13,6 +13,21 @@
 </head>
 <body>
 <div class="main" id="container">
+    <div class="instructions" id="instructions">
+        Click a player below to hear their famous game played as music.
+    </div>
+    <div class="controls" id="controls">
+        <label>White:
+            <select id="whiteInstrument"></select>
+        </label>
+        <label>Black:
+            <select id="blackInstrument"></select>
+        </label>
+        <form id="pgnForm" class="pgnForm">
+            <input type="url" id="pgnUrl" placeholder="Paste a PGN URL (or ?pgn=... in the address bar)" />
+            <button type="submit">Play PGN</button>
+        </form>
+    </div>
     <div class="images" id="playerImages">
         <img class="playerImage" src="img/fischer.jpg" alt="Bobby Fischer" onclick="replayGame(this, 'fischer');">
         <img class="playerImage" src="img/kasparov.jpg" alt="Garry Kasparov" onclick="replayGame(this, 'kasparov');">
