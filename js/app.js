@@ -620,14 +620,26 @@ function movePiece() {
     playPosition(moves[i]);
     gameState.note_duration_ms = gameState.note_duration_ms - gameState.speedup_ms;
     
-    // Update PGN ticker
-    let text = pgnEl.textContent;
+    // Update PGN ticker: emit spans so the latest move can flash brightly.
     if (current_move % 2 === 0) {
-        let display_move = current_move / 2 + 1;
-        text = text + ' ' + display_move + '.';
+        const display_move = current_move / 2 + 1;
+        const numSpan = document.createElement('span');
+        numSpan.className = 'moveNum';
+        numSpan.textContent = (pgnEl.childNodes.length ? ' ' : '') + display_move + '.';
+        pgnEl.appendChild(numSpan);
     }
-    pgnEl.textContent = text + ' ' + moves[i].san;
-    // Auto-scroll ticker to the end so the current move is visible
+    // Demote previous "latest" move
+    const prev = pgnEl.querySelector('.move.moveLatest');
+    if (prev) {
+        // Force a reflow so the transition kicks in when we remove the class
+        // eslint-disable-next-line no-unused-expressions
+        prev.offsetWidth;
+        prev.classList.remove('moveLatest');
+    }
+    const moveSpan = document.createElement('span');
+    moveSpan.className = 'move moveLatest';
+    moveSpan.textContent = ' ' + moves[i].san;
+    pgnEl.appendChild(moveSpan);
     pgnEl.scrollTop = pgnEl.scrollHeight;
 
     current_move = current_move + 1;

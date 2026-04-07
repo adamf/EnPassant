@@ -69,32 +69,32 @@ h2:first-child { margin-top: 0; }
 }
 
 .appTitle {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.35rem;
+    font-weight: 700;
     letter-spacing: 0.01em;
 }
 
 .appTitleSub {
     color: var(--fg-faint);
     font-weight: 400;
-    font-size: 0.8rem;
-    margin-left: 8px;
+    font-size: 0.85rem;
+    margin-left: 10px;
 }
 
 .appNav {
     display: flex;
-    gap: 4px;
+    gap: 6px;
 }
 
 .iconBtn {
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
     border: 1px solid var(--border);
     background: var(--bg-raised);
     color: var(--fg-dim);
     border-radius: var(--radius);
     font-family: var(--font);
-    font-size: 1rem;
+    font-size: 1.2rem;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -339,7 +339,7 @@ h2:first-child { margin-top: 0; }
 /* ============= Voice selectors (above the board) ============= */
 .voiceBar {
     grid-area: voices;
-    width: clamp(260px, 88vmin, 520px);
+    width: clamp(240px, min(84vmin, 58svh), 560px);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -414,7 +414,7 @@ h2:first-child { margin-top: 0; }
 }
 
 .mainBoard {
-    width: clamp(260px, 88vmin, 520px);
+    width: clamp(240px, min(84vmin, 58svh), 560px);
     aspect-ratio: 1 / 1;
     flex: 0 0 auto;
 }
@@ -465,7 +465,7 @@ h2:first-child { margin-top: 0; }
     grid-area: beat;
     display: flex;
     gap: 3px;
-    width: clamp(260px, 88vmin, 520px);
+    width: clamp(240px, min(84vmin, 58svh), 560px);
     height: 8px;
 }
 .beatBar .beatCell {
@@ -483,7 +483,7 @@ h2:first-child { margin-top: 0; }
 /* ============= Ticker ============= */
 .ticker {
     grid-area: ticker;
-    width: clamp(260px, 88vmin, 520px);
+    width: clamp(240px, min(84vmin, 58svh), 560px);
     min-height: 2.4em;
     max-height: 3em;
     overflow-y: auto;
@@ -502,6 +502,17 @@ h2:first-child { margin-top: 0; }
 .ticker:empty::before {
     content: "—";
     color: var(--fg-faint);
+}
+.ticker .moveNum {
+    color: var(--fg-faint);
+}
+.ticker .move {
+    color: var(--fg-dim);
+    transition: color 800ms ease-out;
+}
+.ticker .move.moveLatest {
+    color: var(--accent);
+    transition: none;
 }
 
 /* ============= cm-chessboard flash markers ============= */
@@ -536,6 +547,27 @@ h2:first-child { margin-top: 0; }
 .aboutPage a:hover { color: var(--fg); }
 .aboutPage ul { padding-left: 20px; }
 .aboutPage li { margin-bottom: 8px; }
+
+/* Bigger chrome on desktop */
+@media (min-width: 900px) {
+    .appTitle { font-size: 1.6rem; }
+    .appTitleSub { font-size: 0.95rem; }
+    .iconBtn { width: 46px; height: 46px; font-size: 1.3rem; }
+    .appHeader { padding: 8px 16px 16px; }
+}
+
+/* Tighter picker on short viewports so the board + ticker still fit */
+@media (max-height: 780px) {
+    .gameCard { flex-basis: 120px; padding: 6px; }
+    .gameCard img { margin-bottom: 6px; }
+    .gameCardLabel { font-size: 0.78rem; }
+    .gameCardSub { font-size: 0.7rem; }
+    .main { gap: 10px; }
+}
+@media (max-height: 640px) {
+    .gameCard { flex-basis: 100px; padding: 5px; }
+    .gameCardSub { display: none; }
+}
 
 /* ============= Reduced motion ============= */
 @media (prefers-reduced-motion: reduce) {
