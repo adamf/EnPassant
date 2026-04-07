@@ -24,8 +24,12 @@
             <select id="blackInstrument"></select>
         </label>
         <form id="pgnForm" class="pgnForm">
-            <input type="url" id="pgnUrl" placeholder="Paste a PGN URL (or ?pgn=... in the address bar)" />
-            <button type="submit">Play PGN</button>
+            <input type="url" id="pgnUrl" placeholder="PGN URL (lichess works; chess.com does not)" />
+            <button type="submit">Load URL</button>
+        </form>
+        <form id="pgnPasteForm" class="pgnPasteForm">
+            <textarea id="pgnPaste" rows="3" placeholder="Or paste PGN text here (from chess.com Share menu, etc.)"></textarea>
+            <button type="submit">Play Pasted PGN</button>
         </form>
     </div>
     <div class="images" id="playerImages">

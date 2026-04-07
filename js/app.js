@@ -855,15 +855,33 @@ function populateInstrumentSelectors() {
     };
 }
 
+function normalizePgnUrl(url) {
+    // Rewrite lichess game-page URLs to the raw export endpoint so CORS works.
+    // e.g. https://lichess.org/abcd1234 -> https://lichess.org/game/export/abcd1234
+    const m = url.match(/^https?:\/\/lichess\.org\/([a-zA-Z0-9]{8})(?:[/?#].*)?$/);
+    if (m) return 'https://lichess.org/game/export/' + m[1];
+    return url;
+}
+
 function wirePgnForm() {
     const form = document.getElementById('pgnForm');
     const input = document.getElementById('pgnUrl');
-    if (!form || !input) return;
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const url = input.value.trim();
-        if (url) loadPgnFromUrl(url);
-    });
+    if (form && input) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const url = input.value.trim();
+            if (url) loadPgnFromUrl(normalizePgnUrl(url));
+        });
+    }
+    const pasteForm = document.getElementById('pgnPasteForm');
+    const pasteArea = document.getElementById('pgnPaste');
+    if (pasteForm && pasteArea) {
+        pasteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = pasteArea.value.trim();
+            if (text) startReplay(text);
+        });
+    }
 }
 
 function checkPgnQueryParam() {

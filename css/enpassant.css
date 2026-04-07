@@ -83,6 +83,31 @@ body {
     min-width: 0;
 }
 
+.pgnPasteForm {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 100%;
+    max-width: 560px;
+}
+
+.pgnPasteForm textarea {
+    background: #111;
+    color: #ccc;
+    border: 1px solid #333;
+    padding: 6px;
+    font-family: monospace;
+    font-size: 9pt;
+    border-radius: 3px;
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pgnPasteForm button {
+    align-self: flex-end;
+}
+
 /* Player Images */
 .images {
     display: flex;
