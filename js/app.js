@@ -68,6 +68,7 @@ const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const gameState = {
     music_type: 'samples',
     note_duration_ms: 200,
+    base_tempo_ms: 200,
     speedup_ms: 0,
     instrument_names: {
         'w': 'acoustic_grand_piano',
@@ -619,13 +620,15 @@ function movePiece() {
     playPosition(moves[i]);
     gameState.note_duration_ms = gameState.note_duration_ms - gameState.speedup_ms;
     
-    // Update PGN display
+    // Update PGN ticker
     let text = pgnEl.textContent;
     if (current_move % 2 === 0) {
         let display_move = current_move / 2 + 1;
-        text = text + ' ' + display_move + '. ';
+        text = text + ' ' + display_move + '.';
     }
     pgnEl.textContent = text + ' ' + moves[i].san;
+    // Auto-scroll ticker to the end so the current move is visible
+    pgnEl.scrollTop = pgnEl.scrollHeight;
 
     current_move = current_move + 1;
 }
@@ -651,7 +654,7 @@ function resetState() {
     last_move = {};
     current_move = 0;
     cur_file = 0;
-    gameState.note_duration_ms = 200;
+    gameState.note_duration_ms = gameState.base_tempo_ms;
     chess_moves = new Chess();
     game = new Chess();
     setupMusic();
@@ -763,7 +766,15 @@ function startReplay(pgnText) {
 // Make replayGame available globally for onclick handlers
 window.replayGame = function(element, player_name) {
     if (startReplay(pgns[player_name].join('\n'))) {
-        element.classList.add("playerImageColor");
+        // Mark the clicked game card as the active one
+        document.querySelectorAll('.gameCard.playing')
+            .forEach(el => el.classList.remove('playing'));
+        if (element && element.classList) {
+            element.classList.add('playing');
+        }
+        // Dismiss first-run hint pulse on first interaction
+        const picker = document.querySelector('.gamePicker.hinting');
+        if (picker) picker.classList.remove('hinting');
     }
 };
 
@@ -840,6 +851,67 @@ function wirePgnForm() {
     }
 }
 
+function wireChrome() {
+    // Sheet open/close: icon buttons in header toggle <details> panels.
+    // Opening one closes the others so only one is visible at a time.
+    const sheetIds = ['settingsSheet', 'loadPgnSheet', 'aboutSheet'];
+    const buttons = document.querySelectorAll('.iconBtn[data-sheet]');
+    const syncButtonState = () => {
+        buttons.forEach(btn => {
+            const sheet = document.getElementById(btn.dataset.sheet);
+            btn.setAttribute('aria-expanded', sheet && sheet.open ? 'true' : 'false');
+        });
+    };
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = document.getElementById(btn.dataset.sheet);
+            if (!target) return;
+            const wasOpen = target.open;
+            sheetIds.forEach(id => {
+                const s = document.getElementById(id);
+                if (s) s.open = false;
+            });
+            target.open = !wasOpen;
+            syncButtonState();
+        });
+    });
+    // Also hide the <summary> clickable row since we drive via icons.
+    document.querySelectorAll('.sheetSummary').forEach(s => {
+        s.addEventListener('click', (e) => e.preventDefault());
+    });
+
+    // Tempo slider
+    const tempoSlider = document.getElementById('tempoSlider');
+    const tempoValue = document.getElementById('tempoValue');
+    if (tempoSlider && tempoValue) {
+        const update = () => {
+            const v = parseInt(tempoSlider.value, 10);
+            gameState.base_tempo_ms = v;
+            // Only rewrite live tempo if not in the middle of a replay
+            if (!is_replay) gameState.note_duration_ms = v;
+            tempoValue.textContent = v + ' ms';
+        };
+        tempoSlider.addEventListener('input', update);
+        update();
+    }
+
+    // Two-player toggle
+    const twoPlayerToggle = document.getElementById('twoPlayerToggle');
+    if (twoPlayerToggle) {
+        twoPlayerToggle.addEventListener('change', () => {
+            if (twoPlayerToggle.checked) {
+                window.twoPlayer();
+            } else {
+                resetState();
+            }
+        });
+    }
+
+    // First-run hint pulse on the game picker until the user clicks something
+    const picker = document.querySelector('.gamePicker');
+    if (picker) picker.classList.add('hinting');
+}
+
 function checkPgnQueryParam() {
     const params = new URLSearchParams(window.location.search);
     const pgnUrl = params.get('pgn');
@@ -858,7 +930,7 @@ function init() {
         checkPgnQueryParam();
     });
     wirePgnForm();
-    highlightPlayerImages();
+    wireChrome();
 
     // Add touch/click event listener to resume audio context
     document.body.addEventListener('touchstart', resumeAudioContext, { once: true });

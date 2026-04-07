@@ -1,375 +1,486 @@
-/* Reset and Base Styles */
-* {
-    box-sizing: border-box;
+/* ============= Base ============= */
+:root {
+    --bg: #0a0a0a;
+    --bg-raised: #141414;
+    --border: #242424;
+    --fg: #e8e8e8;
+    --fg-dim: #9a9a9a;
+    --fg-faint: #555;
+    --accent: #6ab0ff;
+    --accent-white: #ffffff;
+    --accent-black: #d84a4a;
+    --radius: 6px;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
 }
 
 body {
-    background-color: #000000;
-    padding: 0;
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 20px;
-}
-
-.main {
-    width: 100%;
-    max-width: 950px;
-    min-height: auto;
-    padding: 10px;
+    padding:
+        calc(env(safe-area-inset-top) + 8px)
+        env(safe-area-inset-right)
+        calc(env(safe-area-inset-bottom) + 8px)
+        env(safe-area-inset-left);
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* Instructions & controls */
-.instructions {
-    color: #cccccc;
-    font-family: sans-serif;
-    font-size: 11pt;
-    text-align: center;
-    margin-bottom: 10px;
+a {
+    color: var(--fg-dim);
+    text-decoration: none;
+    border-bottom: 1px solid var(--fg-faint);
 }
+a:hover { color: var(--fg); border-bottom-color: var(--fg-dim); }
 
-.controls {
+h2 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+    margin: 16px 0 8px;
+}
+h2:first-child { margin-top: 0; }
+
+/* ============= Header ============= */
+.appHeader {
+    width: 100%;
+    max-width: 720px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
     align-items: center;
-    margin-bottom: 15px;
-    color: #888;
-    font-family: sans-serif;
-    font-size: 10pt;
+    justify-content: space-between;
+    padding: 4px 12px 12px;
+    gap: 12px;
 }
 
-.controls label {
+.appTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.appTitleSub {
+    color: var(--fg-faint);
+    font-weight: 400;
+    font-size: 0.8rem;
+    margin-left: 8px;
+}
+
+.appNav {
+    display: flex;
+    gap: 4px;
+}
+
+.iconBtn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--fg-dim);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 1rem;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    transition: color 120ms, background-color 120ms, border-color 120ms;
+}
+.iconBtn:hover { color: var(--fg); border-color: var(--fg-faint); }
+.iconBtn[aria-expanded="true"] {
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
-.controls select,
-.controls input,
-.controls button {
-    background: #111;
-    color: #ccc;
-    border: 1px solid #333;
-    padding: 4px 6px;
-    font-family: sans-serif;
-    font-size: 10pt;
-    border-radius: 3px;
+/* ============= Sheets (details-based) ============= */
+.sheet {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 0 12px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
 }
-
-.controls button {
+.sheet:not([open]) {
+    display: none; /* hide entirely when closed, opened programmatically */
+}
+.sheetSummary {
+    list-style: none;
     cursor: pointer;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+}
+.sheetSummary::-webkit-details-marker { display: none; }
+
+.sheetContent {
+    padding: 16px;
 }
 
-.controls button:hover {
-    background: #222;
-}
-
-.pgnForm {
+.field {
     display: flex;
-    gap: 4px;
-    flex: 1 1 260px;
-    max-width: 420px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+.field:last-child { margin-bottom: 0; }
+
+.fieldLabel {
+    flex: 0 0 auto;
+    min-width: 80px;
+    color: var(--fg-dim);
 }
 
-.pgnForm input {
+.fieldValue {
+    color: var(--fg-dim);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    min-width: 64px;
+    text-align: right;
+}
+
+.field select,
+.field input[type="range"] {
     flex: 1 1 auto;
     min-width: 0;
 }
 
-.pgnPasteForm {
+.field select,
+.sheetForm input,
+.sheetForm textarea,
+.sheetForm button {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 0.9rem;
+}
+
+.field input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 999px;
+    padding: 0;
+    border: none;
+}
+.field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+}
+.field input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.field input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--accent);
+    margin: 0;
+}
+
+.sheetForm {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.sheetForm.sheetFormColumn {
+    flex-direction: column;
+}
+.sheetForm input,
+.sheetForm textarea {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+}
+.sheetForm textarea {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    resize: vertical;
+}
+.sheetForm button {
+    cursor: pointer;
+    background: var(--bg-raised);
+}
+.sheetForm button:hover { border-color: var(--fg-faint); color: var(--fg); }
+.sheetForm.sheetFormColumn button { align-self: flex-end; }
+
+.hint {
+    margin: 12px 0 0;
+    font-size: 0.8rem;
+    color: var(--fg-dim);
+}
+
+.credits {
+    color: var(--fg-dim);
+    font-size: 0.8rem;
+    margin-top: 16px;
+}
+
+/* ============= Main layout ============= */
+.main {
+    width: 100%;
+    max-width: 720px;
+    display: grid;
+    gap: 16px;
+    grid-template-areas:
+        "picker"
+        "board"
+        "beat"
+        "ticker";
+    justify-items: center;
+}
+
+/* ============= Game picker ============= */
+.gamePicker {
+    grid-area: picker;
+    width: 100%;
+    overflow: hidden;
+}
+
+.gamePickerTrack {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px 12px 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.gamePickerTrack::-webkit-scrollbar { display: none; }
+
+.gameCard {
+    flex: 0 0 140px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    flex: 1 1 100%;
-    max-width: 560px;
-}
-
-.pgnPasteForm textarea {
-    background: #111;
-    color: #ccc;
-    border: 1px solid #333;
-    padding: 6px;
-    font-family: monospace;
-    font-size: 9pt;
-    border-radius: 3px;
-    resize: vertical;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.pgnPasteForm button {
-    align-self: flex-end;
-}
-
-/* Player Images */
-.images {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.playerImage {
-    width: calc(20% - 8px);
-    max-width: 180px;
-    min-width: 60px;
-    height: auto;
-    aspect-ratio: 9/10;
-    object-fit: cover;
-    padding: 0;
-    margin: 0;
-    border: 0;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
     cursor: pointer;
+    scroll-snap-align: start;
+    text-align: left;
+    font: inherit;
+    color: var(--fg);
+    transition: border-color 150ms, transform 150ms;
+}
+.gameCard:hover,
+.gameCard:focus-visible {
+    border-color: var(--fg-faint);
+    outline: none;
+}
+
+.gameCard img {
+    width: 100%;
+    aspect-ratio: 9 / 10;
+    object-fit: cover;
+    border-radius: 4px;
     filter: grayscale(100%);
-    -webkit-filter: grayscale(100%);
-    transition: filter 0.2s ease-in-out, -webkit-filter 0.2s ease-in-out;
+    transition: filter 200ms;
+    display: block;
+    margin-bottom: 8px;
 }
-
-.playerImage:hover, .playerImageColor { 
+.gameCard:hover img,
+.gameCard.playing img {
     filter: grayscale(0%);
-    -webkit-filter: grayscale(0%);
 }
 
-/* Chessboard */
-.boardRow {
+.gameCardLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fg);
+    line-height: 1.2;
+}
+.gameCardSub {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--fg-dim);
+    margin-top: 2px;
+}
+
+/* First-run attention pulse on the picker */
+.gamePicker.hinting .gameCard:first-child {
+    animation: cardPulse 1.8s ease-out 2;
+    border-color: var(--accent);
+}
+@keyframes cardPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(106, 176, 255, 0); }
+    50%      { box-shadow: 0 0 0 6px rgba(106, 176, 255, 0.25); }
+}
+
+/* ============= Board + sequencer strips ============= */
+.boardFrame {
+    grid-area: board;
     display: flex;
     align-items: stretch;
     justify-content: center;
     gap: 8px;
     width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
 }
 
 .mainBoard {
-    flex: 1 1 auto;
-    max-width: 400px;
+    width: clamp(260px, 88vmin, 520px);
     aspect-ratio: 1 / 1;
+    flex: 0 0 auto;
 }
 
 .noteColumn {
     display: flex;
-    flex-direction: column-reverse; /* rank 1 at bottom */
-    width: 14px;
-    flex: 0 0 14px;
     gap: 2px;
+    flex: 0 0 12px;
+}
+
+/* Mobile: collapse note columns into thin horizontal strips under the board */
+@media (max-width: 699px) {
+    .noteColumn {
+        display: none; /* on very narrow screens, hide columns entirely */
+    }
+    .boardFrame {
+        gap: 0;
+    }
+}
+
+/* Desktop: vertical columns flanking the board */
+@media (min-width: 700px) {
+    .noteColumn {
+        flex-direction: column-reverse; /* rank 1 at bottom */
+        width: 12px;
+    }
 }
 
 .noteColumn .noteCell {
     flex: 1 1 0;
-    background: #1a1a1a;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
     border-radius: 2px;
-    transition: background-color 120ms ease-out;
+    transition: background-color 120ms ease-out, border-color 120ms ease-out;
 }
 
-.noteColumn#whiteColumn .noteCell.active {
-    background: #ffffff;
+#whiteColumn .noteCell.active {
+    background: var(--accent-white);
+    border-color: var(--accent-white);
+}
+#blackColumn .noteCell.active {
+    background: var(--accent-black);
+    border-color: var(--accent-black);
 }
 
-.noteColumn#blackColumn .noteCell.active {
-    background: #d84a4a;
-}
-
+/* ============= Beat bar ============= */
 .beatBar {
+    grid-area: beat;
     display: flex;
-    gap: 2px;
-    width: 100%;
-    max-width: 400px;
-    margin: 6px auto 15px;
-    height: 10px;
+    gap: 3px;
+    width: clamp(260px, 88vmin, 520px);
+    height: 8px;
 }
-
 .beatBar .beatCell {
     flex: 1 1 0;
-    background: #1a1a1a;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
     border-radius: 2px;
-    transition: background-color 120ms ease-out;
+    transition: background-color 120ms ease-out, border-color 120ms ease-out;
 }
-
 .beatBar .beatCell.active {
-    background: #6ab0ff;
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
-/* Custom marker animations for square flash effects */
+/* ============= Ticker ============= */
+.ticker {
+    grid-area: ticker;
+    width: clamp(260px, 88vmin, 520px);
+    min-height: 2.4em;
+    max-height: 3em;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 10px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--fg-dim);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+    scrollbar-width: thin;
+}
+.ticker:empty::before {
+    content: "—";
+    color: var(--fg-faint);
+}
+
+/* ============= cm-chessboard flash markers ============= */
 .cm-chessboard .marker-flash {
     fill: #ffffff;
     opacity: 0.8;
     animation: flash-animation 210ms ease-out forwards;
 }
-
 .cm-chessboard .marker-capture {
-    fill: #ff0000;
-    opacity: 0.8;
+    fill: #ff4040;
+    opacity: 0.85;
     animation: flash-animation 210ms ease-out forwards;
 }
-
 @keyframes flash-animation {
-    0% { opacity: 0.8; }
+    0%   { opacity: 0.8; }
     100% { opacity: 0; }
 }
 
-/* PGN Display */
-#pgn {
-    color: #888;
-    font-family: sans-serif;
-    font-size: 10pt;
-    text-align: center;
-    padding: 10px;
-    max-width: 100%;
-    word-wrap: break-word;
-}
-
-#fen, #status {
-    color: #888;
-    font-family: sans-serif;
-    font-size: 9pt;
-    text-align: center;
-    display: block;
-    margin-bottom: 10px;
-}
-
-/* Footer */
-#footer {
-    color: #333333;
-    font-size: 8pt;
-    width: 100%;
-    text-align: center;
-    margin-top: auto;
-    padding: 15px 0;
-}
-
-a {
-    color: #333333;
-    font-size: 8pt;
-    font-family: sans-serif;
-    text-decoration: none;
-}
-
-a:hover {
-    color: #666666;
-}
-
-/* About Page */
+/* ============= About page (used by about.html) ============= */
 .aboutPage, .aboutPage * {
-    color: #ffffff;
-    font-size: 10pt;
-    font-family: sans-serif;
-    text-decoration: none;
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 0.95rem;
 }
-
 .aboutPage {
-    max-width: 600px;
+    max-width: 640px;
     width: 100%;
     padding: 20px;
     line-height: 1.6;
 }
+.aboutPage a { color: var(--fg-dim); }
+.aboutPage a:hover { color: var(--fg); }
+.aboutPage ul { padding-left: 20px; }
+.aboutPage li { margin-bottom: 8px; }
 
-.aboutPage a {
-    color: #aaaaaa;
-    font-size: 10pt;
-    font-family: sans-serif;
-    text-decoration: none;
+/* ============= Reduced motion ============= */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    .gamePicker.hinting .gameCard:first-child { animation: none; }
 }
 
-.aboutPage a:hover {
-    color: #cccccc;
-}
-
-.aboutPage ul {
-    padding-left: 20px;
-}
-
-.aboutPage li {
-    margin-bottom: 8px;
-}
-
-/* Mobile Responsive Styles */
-@media screen and (max-width: 768px) {
-    body {
-        padding-top: 10px;
-    }
-
-    .main {
-        padding: 5px;
-    }
-
-    .playerImage {
-        width: calc(33.33% - 6px);
-        min-width: 80px;
-    }
-
-    .mainBoard {
-        max-width: 320px;
-    }
-
-    #pgn {
-        font-size: 9pt;
-        padding: 5px;
-    }
-
-    #footer {
-        font-size: 7pt;
-        padding: 10px 5px;
-    }
-
-    #footer a {
-        font-size: 7pt;
-    }
-
-    .aboutPage {
-        padding: 10px;
-        font-size: 9pt;
-    }
-
-    .aboutPage, .aboutPage * {
-        font-size: 9pt;
-    }
-
-    .aboutPage a {
-        font-size: 9pt;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .playerImage {
-        width: calc(33.33% - 4px);
-        min-width: 60px;
-    }
-
-    .mainBoard {
-        max-width: 280px;
-    }
-
-    #pgn {
-        font-size: 8pt;
-    }
-
-    .aboutPage {
-        padding: 8px;
-    }
-
-    .aboutPage, .aboutPage * {
-        font-size: 8pt;
-    }
-
-    .aboutPage a {
-        font-size: 8pt;
-    }
-}
-
-/* Touch-friendly improvements */
+/* ============= Touch polish ============= */
 @media (hover: none) and (pointer: coarse) {
-    .playerImage {
-        /* Larger tap targets on touch devices */
-        min-height: 60px;
-    }
+    .iconBtn { width: 40px; height: 40px; }
+    .gameCard { flex-basis: 150px; }
 }

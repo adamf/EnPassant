@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>En Passant - Musical Chess</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title>En Passant — Musical Chess</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cm-chessboard@8/assets/chessboard.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cm-chessboard@8/assets/extensions/markers/markers.css">
     <link rel="stylesheet" href="css/enpassant.css">
@@ -12,50 +13,129 @@
     <script src="js/games.js"></script>
 </head>
 <body>
-<div class="main" id="container">
-    <div class="instructions" id="instructions">
-        Click a player below to hear their famous game played as music.
-    </div>
-    <div class="controls" id="controls">
-        <label>White:
+
+<header class="appHeader">
+    <div class="appTitle">En&nbsp;Passant <span class="appTitleSub">musical chess</span></div>
+    <nav class="appNav" aria-label="App controls">
+        <button class="iconBtn" type="button" data-sheet="settingsSheet" aria-label="Settings" title="Settings">⚙</button>
+        <button class="iconBtn" type="button" data-sheet="loadPgnSheet" aria-label="Load PGN" title="Load PGN">♪</button>
+        <button class="iconBtn" type="button" data-sheet="aboutSheet" aria-label="About" title="About">i</button>
+    </nav>
+</header>
+
+<details class="sheet" id="settingsSheet">
+    <summary class="sheetSummary">Settings</summary>
+    <div class="sheetContent">
+        <h2>Instruments</h2>
+        <label class="field">
+            <span class="fieldLabel">White</span>
             <select id="whiteInstrument"></select>
         </label>
-        <label>Black:
+        <label class="field">
+            <span class="fieldLabel">Black</span>
             <select id="blackInstrument"></select>
         </label>
-        <form id="pgnForm" class="pgnForm">
-            <input type="url" id="pgnUrl" placeholder="PGN URL (lichess works; chess.com does not)" />
-            <button type="submit">Load URL</button>
+
+        <h2>Playback</h2>
+        <label class="field">
+            <span class="fieldLabel">Tempo</span>
+            <input type="range" id="tempoSlider" min="80" max="400" step="10" value="200">
+            <span class="fieldValue" id="tempoValue">200 ms</span>
+        </label>
+
+        <h2>Mode</h2>
+        <label class="field fieldRow">
+            <span class="fieldLabel">Two-player (play on the board)</span>
+            <input type="checkbox" id="twoPlayerToggle">
+        </label>
+    </div>
+</details>
+
+<details class="sheet" id="loadPgnSheet">
+    <summary class="sheetSummary">Load PGN</summary>
+    <div class="sheetContent">
+        <h2>From URL</h2>
+        <form id="pgnForm" class="sheetForm">
+            <input type="url" id="pgnUrl" placeholder="https://lichess.org/abcd1234" autocomplete="off" />
+            <button type="submit">Load</button>
         </form>
-        <form id="pgnPasteForm" class="pgnPasteForm">
-            <textarea id="pgnPaste" rows="3" placeholder="Or paste PGN text here (from chess.com Share menu, etc.)"></textarea>
+        <h2>Paste PGN text</h2>
+        <form id="pgnPasteForm" class="sheetForm sheetFormColumn">
+            <textarea id="pgnPaste" rows="5" placeholder='[Event "..."]&#10;1. e4 e5 2. Nf3 Nc6 ...'></textarea>
             <button type="submit">Play Pasted PGN</button>
         </form>
+        <p class="hint">
+            Lichess game URLs work directly. For chess.com, open the game, use Share → PGN, and paste the text above.
+        </p>
     </div>
-    <div class="images" id="playerImages">
-        <img class="playerImage" src="img/fischer.jpg" alt="Bobby Fischer" onclick="replayGame(this, 'fischer');">
-        <img class="playerImage" src="img/kasparov.jpg" alt="Garry Kasparov" onclick="replayGame(this, 'kasparov');">
-        <img class="playerImage" src="img/deep_blue.jpg" alt="Deep Blue" onclick="replayGame(this, 'deep blue');">
-        <img class="playerImage" src="img/polgar.jpg" alt="Judit Polgar" onclick="replayGame(this, 'polgar');">
-        <img class="playerImage" src="img/immortal.jpg" alt="Immortal Game" onclick="replayGame(this, 'immortal');">
+</details>
+
+<details class="sheet" id="aboutSheet">
+    <summary class="sheetSummary">About</summary>
+    <div class="sheetContent">
+        <h2>About</h2>
+        <p>
+            En Passant turns a chess game into music. The sequencer sweeps across the files a–h;
+            each occupied square becomes a note in an E-minor pentatonic scale, mid-register for
+            White and low-register for Black.
+        </p>
+        <p>
+            Click a portrait to hear a famous game, or load your own via the ♪ menu.
+        </p>
+        <p class="credits">
+            <a href="https://thesimplelogic.com">By Adam Fletcher</a> ·
+            <a href="https://github.com/adamf/EnPassant">GitHub</a> ·
+            Music Hack Day Boston, 2013
+        </p>
     </div>
-    <div class="boardRow">
-        <div class="noteColumn" id="whiteColumn"></div>
+</details>
+
+<main class="main">
+    <section class="gamePicker" aria-label="Famous games">
+        <div class="gamePickerTrack" id="playerImages">
+            <button type="button" class="gameCard" onclick="replayGame(this, 'fischer')">
+                <img src="img/fischer.jpg" alt="">
+                <span class="gameCardLabel">Fischer vs Byrne</span>
+                <span class="gameCardSub">New York, 1956</span>
+            </button>
+            <button type="button" class="gameCard" onclick="replayGame(this, 'kasparov')">
+                <img src="img/kasparov.jpg" alt="">
+                <span class="gameCardLabel">Kasparov vs Karpov</span>
+                <span class="gameCardSub">WCC, 1987</span>
+            </button>
+            <button type="button" class="gameCard" onclick="replayGame(this, 'deep blue')">
+                <img src="img/deep_blue.jpg" alt="">
+                <span class="gameCardLabel">Deep Blue vs Kasparov</span>
+                <span class="gameCardSub">1996</span>
+            </button>
+            <button type="button" class="gameCard" onclick="replayGame(this, 'polgar')">
+                <img src="img/polgar.jpg" alt="">
+                <span class="gameCardLabel">Pantsulaia vs Polgar</span>
+                <span class="gameCardSub">Aix-les-Bains, 2011</span>
+            </button>
+            <button type="button" class="gameCard" onclick="replayGame(this, 'immortal')">
+                <img src="img/immortal.jpg" alt="">
+                <span class="gameCardLabel">The Immortal Game</span>
+                <span class="gameCardSub">Anderssen, 1852</span>
+            </button>
+        </div>
+    </section>
+
+    <div class="boardFrame">
+        <div class="noteColumn" id="whiteColumn" aria-hidden="true"></div>
         <div class="mainBoard" id="board1"></div>
-        <div class="noteColumn" id="blackColumn"></div>
+        <div class="noteColumn" id="blackColumn" aria-hidden="true"></div>
     </div>
-    <div class="beatBar" id="beatBar"></div>
-    <div id="pgn"></div>
-    <span id="fen"></span>
-    <span id="status"></span>
-    <div id="footer">
-        <a href="https://thesimplelogic.com">By Adam Fletcher</a> | 
-        <a href="about.html">About</a> | 
-        <a href="index.html">Home</a> | 
-        <a href="https://github.com/adamf/EnPassant">Github</a> | 
-        <a href="http://boston.musichackday.org/2013/index.php?page=Main+page">Music Hack Day Boston, 2013</a>
-    </div>
-</div>
+
+    <div class="beatBar" id="beatBar" aria-hidden="true"></div>
+
+    <div class="ticker" id="pgn" aria-live="polite"></div>
+
+    <!-- Hidden: kept for two-player mode status (surfaced in ticker) -->
+    <span id="fen" hidden></span>
+    <span id="status" hidden></span>
+</main>
+
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
