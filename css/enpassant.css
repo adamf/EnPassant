@@ -59,18 +59,8 @@ body {
 .mainBoard {
     width: 100%;
     max-width: 400px;
+    aspect-ratio: 1 / 1;
     margin: 0 auto 15px;
-}
-
-/* cm-chessboard customizations */
-#board1 .cm-chessboard {
-    width: 100% !important;
-    height: auto !important;
-}
-
-#board1 .cm-chessboard .board {
-    width: 100%;
-    height: 100%;
 }
 
 /* Custom marker animations for square flash effects */

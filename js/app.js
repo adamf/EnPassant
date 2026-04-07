@@ -93,8 +93,7 @@ function createBoard(containerId, options = {}) {
         position: FEN.start,
         assetsUrl: 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/assets/',
         style: {
-            showCoordinates: false,
-            aspectRatio: 1
+            showCoordinates: false
         },
         extensions: [
             { class: Markers }
