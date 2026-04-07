@@ -73,7 +73,8 @@ const gameState = {
     instrument_names: {
         'w': 'acoustic_grand_piano',
         'b': 'acoustic_bass'
-    }
+    },
+    octave_offset: { w: 0, b: 0 }
 };
 
 // ============= Audio State =============
@@ -292,11 +293,12 @@ function setupNotes() {
     const Tonal = getTonal();
 
     // With Soundfont handling pitch across the full keyboard we use a
-    // fixed E-minor-pentatonic layout independent of the instrument.
+    // fixed E-minor-pentatonic layout independent of the instrument,
+    // shifted by the user-selected octave offset per side.
     chessMusic['w'].rootNote = 'E';
-    chessMusic['w'].rootOctave = 3;
+    chessMusic['w'].rootOctave = 3 + (gameState.octave_offset.w || 0);
     chessMusic['b'].rootNote = 'E';
-    chessMusic['b'].rootOctave = 1;
+    chessMusic['b'].rootOctave = 2 + (gameState.octave_offset.b || 0);
     
     // Generate scale notes using Tonal.js
     if (Tonal) {
@@ -625,7 +627,7 @@ function movePiece() {
         const display_move = current_move / 2 + 1;
         const numSpan = document.createElement('span');
         numSpan.className = 'moveNum';
-        numSpan.textContent = (pgnEl.childNodes.length ? ' ' : '') + display_move + '.';
+        numSpan.textContent = display_move + '.';
         pgnEl.appendChild(numSpan);
     }
     // Demote previous "latest" move
@@ -638,9 +640,13 @@ function movePiece() {
     }
     const moveSpan = document.createElement('span');
     moveSpan.className = 'move moveLatest';
-    moveSpan.textContent = ' ' + moves[i].san;
+    moveSpan.textContent = moves[i].san;
     pgnEl.appendChild(moveSpan);
-    pgnEl.scrollTop = pgnEl.scrollHeight;
+    // Keep only the most recent ~30 tokens so the DOM stays small;
+    // CSS mask handles the left-edge fade.
+    while (pgnEl.childNodes.length > 30) {
+        pgnEl.removeChild(pgnEl.firstChild);
+    }
 
     current_move = current_move + 1;
 }
@@ -891,6 +897,23 @@ function wireChrome() {
     document.querySelectorAll('.sheetSummary').forEach(s => {
         s.addEventListener('click', (e) => e.preventDefault());
     });
+
+    // Octave offset sliders
+    const wireOctave = (sliderId, valueId, color) => {
+        const slider = document.getElementById(sliderId);
+        const value = document.getElementById(valueId);
+        if (!slider || !value) return;
+        const update = () => {
+            const v = parseInt(slider.value, 10);
+            gameState.octave_offset[color] = v;
+            value.textContent = (v > 0 ? '+' : '') + v;
+            setupNotes();
+        };
+        slider.addEventListener('input', update);
+        update();
+    };
+    wireOctave('whiteOctave', 'whiteOctaveValue', 'w');
+    wireOctave('blackOctave', 'blackOctaveValue', 'b');
 
     // Tempo slider
     const tempoSlider = document.getElementById('tempoSlider');

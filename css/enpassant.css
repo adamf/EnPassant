@@ -480,35 +480,37 @@ h2:first-child { margin-top: 0; }
     border-color: var(--accent);
 }
 
-/* ============= Ticker ============= */
+/* ============= Ticker (one-line marquee, newest on the right) ============= */
 .ticker {
     grid-area: ticker;
     width: clamp(240px, min(84vmin, 58svh), 560px);
-    min-height: 2.4em;
-    max-height: 3em;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 8px 10px;
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    height: 2em;
     color: var(--fg-dim);
     font-family: var(--font-mono);
-    font-size: 0.78rem;
-    line-height: 1.5;
-    word-wrap: break-word;
-    scrollbar-width: thin;
+    font-size: 0.95rem;
+    line-height: 2em;
+    white-space: nowrap;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 56px, #000 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 56px, #000 100%);
 }
 .ticker:empty::before {
     content: "—";
     color: var(--fg-faint);
 }
+.ticker > span { flex: 0 0 auto; }
 .ticker .moveNum {
     color: var(--fg-faint);
+    margin-left: 10px;
 }
+.ticker .moveNum:first-child { margin-left: 0; }
 .ticker .move {
     color: var(--fg-dim);
-    transition: color 800ms ease-out;
+    margin-left: 5px;
+    transition: color 900ms ease-out;
 }
 .ticker .move.moveLatest {
     color: var(--accent);
