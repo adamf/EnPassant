@@ -1,6 +1,50 @@
 // Main application module - jQuery-free implementation
 import { Chessboard, FEN, INPUT_EVENT_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/Chessboard.js';
 import { Markers, MARKER_TYPE } from 'https://cdn.jsdelivr.net/npm/cm-chessboard@8/src/extensions/markers/Markers.js';
+import { Soundfont } from 'https://cdn.jsdelivr.net/npm/smplr@0.20.0/dist/index.mjs';
+
+// Curated subset of General MIDI Soundfont instruments (gleitz/midi-js-soundfonts)
+const INSTRUMENTS = [
+    { id: 'acoustic_grand_piano',    label: 'Grand Piano' },
+    { id: 'electric_piano_1',        label: 'Electric Piano' },
+    { id: 'harpsichord',             label: 'Harpsichord' },
+    { id: 'celesta',                 label: 'Celesta' },
+    { id: 'music_box',               label: 'Music Box' },
+    { id: 'vibraphone',              label: 'Vibraphone' },
+    { id: 'marimba',                 label: 'Marimba' },
+    { id: 'xylophone',               label: 'Xylophone' },
+    { id: 'tubular_bells',           label: 'Tubular Bells' },
+    { id: 'church_organ',            label: 'Church Organ' },
+    { id: 'drawbar_organ',           label: 'Drawbar Organ' },
+    { id: 'accordion',               label: 'Accordion' },
+    { id: 'acoustic_guitar_nylon',   label: 'Nylon Guitar' },
+    { id: 'acoustic_guitar_steel',   label: 'Steel Guitar' },
+    { id: 'electric_guitar_clean',   label: 'Electric Guitar' },
+    { id: 'acoustic_bass',           label: 'Acoustic Bass' },
+    { id: 'electric_bass_finger',    label: 'Electric Bass' },
+    { id: 'violin',                  label: 'Violin' },
+    { id: 'cello',                   label: 'Cello' },
+    { id: 'contrabass',              label: 'Contrabass' },
+    { id: 'pizzicato_strings',       label: 'Pizzicato Strings' },
+    { id: 'orchestral_harp',         label: 'Harp' },
+    { id: 'string_ensemble_1',       label: 'String Ensemble' },
+    { id: 'choir_aahs',              label: 'Choir' },
+    { id: 'trumpet',                 label: 'Trumpet' },
+    { id: 'french_horn',             label: 'French Horn' },
+    { id: 'tuba',                    label: 'Tuba' },
+    { id: 'alto_sax',                label: 'Alto Sax' },
+    { id: 'clarinet',                label: 'Clarinet' },
+    { id: 'flute',                   label: 'Flute' },
+    { id: 'pan_flute',               label: 'Pan Flute' },
+    { id: 'ocarina',                 label: 'Ocarina' },
+    { id: 'pad_2_warm',              label: 'Warm Pad' },
+    { id: 'kalimba',                 label: 'Kalimba' },
+    { id: 'koto',                    label: 'Koto' },
+    { id: 'sitar',                   label: 'Sitar' },
+    { id: 'banjo',                   label: 'Banjo' },
+    { id: 'steel_drums',             label: 'Steel Drums' },
+    { id: 'timpani',                 label: 'Timpani' }
+];
 
 // Access Tonal.js (loaded as a global script in index.html)
 // Returns null if Tonal is not loaded
@@ -25,10 +69,9 @@ const gameState = {
     music_type: 'samples',
     note_duration_ms: 200,
     speedup_ms: 0,
-    samples_loaded: false,
-    sample_names: {
-        'w': '1098__pitx__spanish-guitar-notes',
-        'b': '6813__menegass__bass-synth-2-octave'
+    instrument_names: {
+        'w': 'acoustic_grand_piano',
+        'b': 'acoustic_bass'
     }
 };
 
@@ -38,8 +81,8 @@ let synths = [];
 let volume;
 let compressor;
 let special_event_synth;
-let sampleConfigs = [];
-const samples = {};
+const instrumentCache = {};
+const activeInstruments = { w: null, b: null };
 const unplayableSquares = {};
 const color_and_rank_to_frequency = { 'w': {}, 'b': {} };
 const chessMusic = { 'w': {}, 'b': {} };
@@ -152,6 +195,16 @@ function createBoard(containerId, options = {}) {
 
 // ============= Audio Setup =============
 function setupMusic() {
+    if (context) {
+        // Audio graph is one-shot; just re-mark starting squares and return.
+        for (let i = 0; i < files.length; i++) {
+            unplayableSquares[files[i] + '1'] = 1;
+            unplayableSquares[files[i] + '2'] = 1;
+            unplayableSquares[files[i] + '7'] = 1;
+            unplayableSquares[files[i] + '8'] = 1;
+        }
+        return;
+    }
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     context = new AudioContextClass();
     volume = context.createGain();
@@ -165,52 +218,6 @@ function setupMusic() {
     compressor.release.value = 0.25;
     volume.connect(compressor);
     compressor.connect(context.destination);
-
-    // Get Tonal library
-    const Tonal = getTonal();
-    
-    if (!Tonal) {
-        // Tonal not loaded - use fallback frequencies (E minor pentatonic)
-        const fallbackFrequencies = {
-            'A2': 110.00, 'C2': 65.41, 'D2': 73.42, 'E2': 82.41, 'G2': 98.00,
-            'A3': 220.00, 'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'G3': 196.00,
-            'A4': 440.00, 'C4': 261.63, 'D4': 293.66
-        };
-        color_and_rank_to_frequency['w'][0] = fallbackFrequencies['A3'];
-        color_and_rank_to_frequency['b'][7] = fallbackFrequencies['A2'];
-        color_and_rank_to_frequency['w'][1] = fallbackFrequencies['C3'];
-        color_and_rank_to_frequency['b'][6] = fallbackFrequencies['C2'];
-        color_and_rank_to_frequency['w'][2] = fallbackFrequencies['D3'];
-        color_and_rank_to_frequency['b'][5] = fallbackFrequencies['D2'];
-        color_and_rank_to_frequency['w'][3] = fallbackFrequencies['E3'];
-        color_and_rank_to_frequency['b'][4] = fallbackFrequencies['E2'];
-        color_and_rank_to_frequency['w'][4] = fallbackFrequencies['G3'];
-        color_and_rank_to_frequency['b'][3] = fallbackFrequencies['G2'];
-        color_and_rank_to_frequency['w'][5] = fallbackFrequencies['A4'];
-        color_and_rank_to_frequency['b'][2] = fallbackFrequencies['A3'];
-        color_and_rank_to_frequency['w'][6] = fallbackFrequencies['C4'];
-        color_and_rank_to_frequency['b'][1] = fallbackFrequencies['C3'];
-        color_and_rank_to_frequency['w'][7] = fallbackFrequencies['D4'];
-        color_and_rank_to_frequency['b'][0] = fallbackFrequencies['D3'];
-    } else {
-        // E minor pentatonic frequencies using Tonal.js
-        color_and_rank_to_frequency['w'][0] = Tonal.Note.freq('A3');
-        color_and_rank_to_frequency['b'][7] = Tonal.Note.freq('A2');
-        color_and_rank_to_frequency['w'][1] = Tonal.Note.freq('C3');
-        color_and_rank_to_frequency['b'][6] = Tonal.Note.freq('C2');
-        color_and_rank_to_frequency['w'][2] = Tonal.Note.freq('D3');
-        color_and_rank_to_frequency['b'][5] = Tonal.Note.freq('D2');
-        color_and_rank_to_frequency['w'][3] = Tonal.Note.freq('E3');
-        color_and_rank_to_frequency['b'][4] = Tonal.Note.freq('E2');
-        color_and_rank_to_frequency['w'][4] = Tonal.Note.freq('G3');
-        color_and_rank_to_frequency['b'][3] = Tonal.Note.freq('G2');
-        color_and_rank_to_frequency['w'][5] = Tonal.Note.freq('A4');
-        color_and_rank_to_frequency['b'][2] = Tonal.Note.freq('A3');
-        color_and_rank_to_frequency['w'][6] = Tonal.Note.freq('C4');
-        color_and_rank_to_frequency['b'][1] = Tonal.Note.freq('C3');
-        color_and_rank_to_frequency['w'][7] = Tonal.Note.freq('D4');
-        color_and_rank_to_frequency['b'][0] = Tonal.Note.freq('D3');
-    }
 
     // Mark initial piece positions as unplayable
     for (let i = 0; i < files.length; i++) {
@@ -232,6 +239,15 @@ function disconnectSynths() {
     }
 }
 
+function stopAllInstruments() {
+    ['w', 'b'].forEach(c => {
+        const sf = activeInstruments[c];
+        if (sf && typeof sf.stop === 'function') {
+            try { sf.stop(); } catch (e) { /* ignore */ }
+        }
+    });
+}
+
 function stopNote(rank) {
     if (synths[rank] && synths[rank].sub_volume) {
         // Short fade-out to avoid clicks. On the final move let notes ring out.
@@ -244,69 +260,42 @@ function stopNote(rank) {
     }
 }
 
-// ============= Sample Loading =============
-function loadSample(sampleDir, sample) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'samples/' + sampleDir + '/' + sample.file, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = function() {
-        const buffer = xhr.response;
-        if (buffer) {
-            decodeSample(buffer, sampleDir, sample);
-        }
-    };
-    xhr.onerror = function() {
-        alert('failed to load sample ' + sampleDir + '/' + sample.file);
-    };
-    xhr.send();
+// ============= Instrument Loading (smplr Soundfont) =============
+function getInstrument(name) {
+    if (instrumentCache[name]) return instrumentCache[name];
+    const sf = new Soundfont(context, { instrument: name, destination: volume });
+    instrumentCache[name] = sf;
+    return sf;
 }
 
-function decodeSample(sampleData, sampleDir, sample) {
-    context.decodeAudioData(
-        sampleData,
-        (decodedData) => storeSampleBuffer(decodedData, sampleDir, sample),
-        (error) => alert('Error decoding ' + sampleDir + '/' + sample.file)
-    );
+async function setInstrument(color, name) {
+    gameState.instrument_names[color] = name;
+    const sf = getInstrument(name);
+    try {
+        await sf.load;
+        activeInstruments[color] = sf;
+    } catch (e) {
+        console.error('Failed to load instrument', name, e);
+    }
 }
 
-function storeSampleBuffer(buffer, sampleDir, sample) {
-    if (!buffer) {
-        alert('Error decoding ' + sampleDir + '/' + sample.file);
-        return;
-    }
-    samples[sampleDir]['notes'][sample.note] = buffer;
-    samples[sampleDir]['to_load'].pop();
-    if (samples[sampleDir]['to_load'].length === 0) {
-        console.log('All samples for ' + sampleDir + ' loaded and decoded');
-        delete samples[sampleDir]['to_load'];
-        gameState.samples_loaded = true;
-    }
+async function loadDefaultInstruments() {
+    await Promise.all([
+        setInstrument('w', gameState.instrument_names['w']),
+        setInstrument('b', gameState.instrument_names['b'])
+    ]);
 }
 
 function setupNotes() {
     // Get Tonal library
     const Tonal = getTonal();
 
-    switch (gameState.music_type) {
-        case 'samples':
-            sampleConfigs.forEach(val => {
-                if (val.dir === gameState.sample_names['w']) {
-                    chessMusic['w'].rootNote = val.rootNote;
-                    chessMusic['w'].rootOctave = val.rootOctave;
-                } else if (val.dir === gameState.sample_names['b']) {
-                    chessMusic['b'].rootNote = val.rootNote;
-                    chessMusic['b'].rootOctave = val.rootOctave;
-                }
-            });
-            break;
-        case 'oscillator':
-        default:
-            chessMusic['w'].rootNote = 'A';
-            chessMusic['w'].rootOctave = 3;
-            chessMusic['b'].rootNote = 'A';
-            chessMusic['b'].rootOctave = 2;
-            break;
-    }
+    // With Soundfont handling pitch across the full keyboard we use a
+    // fixed E-minor-pentatonic layout independent of the instrument.
+    chessMusic['w'].rootNote = 'E';
+    chessMusic['w'].rootOctave = 3;
+    chessMusic['b'].rootNote = 'E';
+    chessMusic['b'].rootOctave = 1;
     
     // Generate scale notes using Tonal.js
     if (Tonal) {
@@ -369,29 +358,6 @@ function setupNotes() {
     }
 }
 
-async function loadSamplesConfig() {
-    try {
-        const response = await fetch('samples/samples.json');
-        const data = await response.json();
-        sampleConfigs = data;
-        data.forEach((val, key) => {
-            console.log(val.dir);
-            const sampleDir = val.dir;
-            samples[sampleDir] = {};
-            samples[sampleDir]['notes'] = {};
-            samples[sampleDir]['config_index'] = key;
-            samples[sampleDir]['to_load'] = [];
-            val.samples.forEach(sample => {
-                samples[sampleDir]['to_load'].push(sample.file);
-                loadSample(sampleDir, sample);
-            });
-        });
-        setupNotes();
-    } catch (error) {
-        console.error('Error loading samples config:', error);
-    }
-}
-
 // ============= Music Playback =============
 function getNoteForRankAndColor(rank, color) {
     if (color === 'w') {
@@ -440,18 +406,19 @@ function playOscillator(rank, note, piece, color) {
 }
 
 function playSample(rank, note, piece, color) {
-    const sub_volume = context.createGain();
-    sub_volume.connect(volume);
-    const target = pieceEffects[piece].gain;
-    const now = context.currentTime;
-    sub_volume.gain.setValueAtTime(0, now);
-    sub_volume.gain.linearRampToValueAtTime(target, now + 0.01);
+    const sf = activeInstruments[color];
+    if (!sf) return;
     const latinNote = note.latin + '' + note.octave;
-    synths[rank] = context.createBufferSource();
-    synths[rank].sub_volume = sub_volume;
-    synths[rank].buffer = samples[gameState.sample_names[color]]['notes'][latinNote];
-    synths[rank].connect(sub_volume);
-    synths[rank].start(0);
+    const now = context.currentTime;
+    const duration = is_finale
+        ? 3.5
+        : Math.max(0.15, (gameState.note_duration_ms * board_size) / 1000);
+    sf.start({
+        note: latinNote,
+        time: now,
+        duration,
+        velocity: Math.round(90 * pieceEffects[piece].gain)
+    });
 }
 
 // ============= Board Position Helpers =============
@@ -563,35 +530,30 @@ function playRankInFile(cur_move) {
 }
 
 function playFinaleChord() {
-    // Sustained root+fifth chord on both voices to resolve the game.
+    // Sustained pentatonic chord on both voices to resolve the game.
     const playColorChord = (color) => {
         const scale = chessMusic[color].midNotes;
         if (!scale || !scale.length) return;
-        // Pentatonic: indices 0 (root), 2 (fourth), 4 (seventh)
+        const sf = activeInstruments[color];
         [0, 2, 4].forEach((idx, i) => {
             const note = scale[idx] || scale[0];
-            const sub_volume = context.createGain();
-            sub_volume.connect(volume);
-            const target = 0.7;
-            const now = context.currentTime + i * 0.12;
-            sub_volume.gain.setValueAtTime(0, now);
-            sub_volume.gain.linearRampToValueAtTime(target, now + 0.02);
-            sub_volume.gain.linearRampToValueAtTime(0, now + 3.5);
-            let source;
-            if (gameState.music_type === 'samples') {
-                const latinNote = note.latin + '' + note.octave;
-                const buf = samples[gameState.sample_names[color]]['notes'][latinNote];
-                if (!buf) return;
-                source = context.createBufferSource();
-                source.buffer = buf;
+            const latinNote = note.latin + '' + note.octave;
+            const time = context.currentTime + i * 0.12;
+            if (gameState.music_type === 'samples' && sf) {
+                sf.start({ note: latinNote, time, duration: 4.0, velocity: 85 });
             } else {
-                source = context.createOscillator();
-                source.type = 0;
-                source.frequency.value = note.frequency();
-                source.stop(now + 3.6);
+                const sub_volume = context.createGain();
+                sub_volume.connect(volume);
+                sub_volume.gain.setValueAtTime(0, time);
+                sub_volume.gain.linearRampToValueAtTime(0.5, time + 0.02);
+                sub_volume.gain.linearRampToValueAtTime(0, time + 3.5);
+                const osc = context.createOscillator();
+                osc.type = 0;
+                osc.frequency.value = note.frequency();
+                osc.connect(sub_volume);
+                osc.start(time);
+                osc.stop(time + 3.6);
             }
-            source.connect(sub_volume);
-            source.start(now);
         });
     };
     playColorChord('w');
@@ -684,6 +646,7 @@ function resetState() {
     is_replay = false;
     is_finale = false;
     disconnectSynths();
+    stopAllInstruments();
     moves = [];
     last_move = {};
     current_move = 0;
@@ -834,25 +797,18 @@ function populateInstrumentSelectors() {
     if (!whiteSel || !blackSel) return;
     whiteSel.innerHTML = '';
     blackSel.innerHTML = '';
-    sampleConfigs.forEach(cfg => {
-        const label = (cfg.name || cfg.dir).replace(/_/g, ' ');
+    INSTRUMENTS.forEach(inst => {
         [whiteSel, blackSel].forEach(sel => {
             const opt = document.createElement('option');
-            opt.value = cfg.dir;
-            opt.textContent = label;
+            opt.value = inst.id;
+            opt.textContent = inst.label;
             sel.appendChild(opt);
         });
     });
-    whiteSel.value = gameState.sample_names['w'];
-    blackSel.value = gameState.sample_names['b'];
-    whiteSel.onchange = () => {
-        gameState.sample_names['w'] = whiteSel.value;
-        setupNotes();
-    };
-    blackSel.onchange = () => {
-        gameState.sample_names['b'] = blackSel.value;
-        setupNotes();
-    };
+    whiteSel.value = gameState.instrument_names['w'];
+    blackSel.value = gameState.instrument_names['b'];
+    whiteSel.onchange = () => setInstrument('w', whiteSel.value);
+    blackSel.onchange = () => setInstrument('b', blackSel.value);
 }
 
 function normalizePgnUrl(url) {
@@ -896,8 +852,9 @@ function checkPgnQueryParam() {
 
 function init() {
     resetState();
-    loadSamplesConfig().then(() => {
-        populateInstrumentSelectors();
+    populateInstrumentSelectors();
+    setupNotes();
+    loadDefaultInstruments().then(() => {
         checkPgnQueryParam();
     });
     wirePgnForm();
