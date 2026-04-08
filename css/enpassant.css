@@ -356,9 +356,18 @@ h2:first-child { margin-top: 0; }
     border: 1px solid var(--border);
     border-radius: 999px;
     padding: 4px 6px 4px 10px;
-    max-width: 48%;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: calc(50% - 4px);
+    overflow: hidden;
 }
 .voicePickBlack { padding: 4px 10px 4px 6px; }
+.voicePick > select { min-width: 0; }
+.voicePick > select:not(.octaveSelect) {
+    flex: 1 1 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 
 .voicePickDot {
     width: 10px;
@@ -505,22 +514,28 @@ h2:first-child { margin-top: 0; }
     flex: 0 0 12px;
 }
 
-/* Mobile: collapse note columns into thin horizontal strips under the board */
-@media (max-width: 699px) {
-    .noteColumn {
-        display: none; /* on very narrow screens, hide columns entirely */
-    }
-    .boardFrame {
-        gap: 0;
-    }
-}
-
 /* Desktop: vertical columns flanking the board */
 @media (min-width: 700px) {
     .noteColumn {
         flex-direction: column-reverse; /* rank 1 at bottom */
         width: 12px;
+        flex: 0 0 12px;
     }
+}
+
+/* Mobile: keep the note columns visible but slimmer so the board stays big */
+@media (max-width: 699px) {
+    .noteColumn {
+        flex-direction: column-reverse;
+        width: 8px;
+        flex: 0 0 8px;
+    }
+    .boardFrame { gap: 4px; }
+
+    .voicePick { padding: 3px 6px 3px 8px; gap: 4px; }
+    .voicePickBlack { padding: 3px 8px 3px 6px; }
+    .voicePick > select:not(.octaveSelect) { font-size: 0.72rem; }
+    .voicePick .octaveSelect { font-size: 0.72rem; min-width: 36px; }
 }
 
 .noteColumn .noteCell {

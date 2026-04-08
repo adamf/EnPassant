@@ -173,9 +173,39 @@ function clearSequencerHighlights() {
         .forEach(el => el.classList.remove('active'));
 }
 
+// iOS silent switch workaround:
+// On iPhone/iPad, the Web Audio output respects the hardware silent switch
+// (it's routed to the "ambient" audio session). To force the page into the
+// "playback" session that ignores the silent switch, we keep a tiny silent
+// HTMLAudioElement playing in a loop. As long as an <audio> element is
+// playing, the page is treated as media playback and Web Audio comes through.
+let silentAudioEl = null;
+function ensureSilentAudio() {
+    if (silentAudioEl) return;
+    silentAudioEl = document.createElement('audio');
+    silentAudioEl.src = 'silent.mp3';
+    silentAudioEl.loop = true;
+    silentAudioEl.preload = 'auto';
+    silentAudioEl.playsInline = true;
+    silentAudioEl.setAttribute('playsinline', '');
+    silentAudioEl.setAttribute('webkit-playsinline', '');
+    silentAudioEl.setAttribute('x-webkit-airplay', 'deny');
+    silentAudioEl.muted = false;
+    silentAudioEl.volume = 1.0;
+    silentAudioEl.style.display = 'none';
+    document.body.appendChild(silentAudioEl);
+}
+
 function resumeAudioContext() {
     if (context && context.state === 'suspended') {
         context.resume();
+    }
+    // Start the silent <audio> in the same gesture so iOS promotes the page
+    // audio session to "playback" and ignores the silent switch.
+    ensureSilentAudio();
+    if (silentAudioEl && silentAudioEl.paused) {
+        const p = silentAudioEl.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
     }
 }
 
